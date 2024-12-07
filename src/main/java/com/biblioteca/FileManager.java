@@ -45,6 +45,7 @@ public class FileManager {
         if (categorias != null) biblioteca.setCategorias(categorias);
         if (emprestimos != null) biblioteca.setEmprestimos(emprestimos);
         if (leitores != null) biblioteca.setLeitores(leitores);
+        biblioteca.limparEmprestimosInvalidos();
     }
 
     private static void salvarLivros(List<Livro> livros) {

@@ -76,6 +76,7 @@ public class Main {
         }
     }
 
+    // Em Main.java, atualize o método realizarCadastro:
     private static void realizarCadastro() {
         String login, senha, nome, email;
 
@@ -131,16 +132,24 @@ public class Main {
             Usuario.getUsuarios().add(novoUsuario);
             System.out.println("Leitor cadastrado com sucesso!");
             FileManager.salvarDados(biblioteca);
+
+            // Define o leitor logado antes de chamar o menu
+            leitorlogado = novoLeitor;
+            usuarioLogado = login;
+
             menuLeitor();
         } else {
             Usuario novoUsuario = new Usuario(login, senha, true);
             Usuario.getUsuarios().add(novoUsuario);
             System.out.println("Administrador cadastrado com sucesso!");
             FileManager.salvarDados(biblioteca);
+
+            usuarioLogado = login;
             menuAdmin();
         }
     }
 
+    // Em Main.java, atualize o método realizarLogin:
     private static void realizarLogin() {
         System.out.println("Login: ");
         String login = scanner.nextLine();
@@ -149,7 +158,6 @@ public class Main {
 
         if (Usuario.autenticar(login, senha)) {
             Usuario usuarioAtual = null;
-            // Encontra o usuário atual
             for (Usuario usuario : Usuario.getUsuarios()) {
                 if (usuario.getLogin().equals(login)) {
                     usuarioAtual = usuario;
@@ -158,18 +166,21 @@ public class Main {
             }
 
             if (usuarioAtual != null) {
+                usuarioLogado = login;
+
                 if (usuarioAtual.isAdmin()) {
                     System.out.println("Bem-vindo, Administrador!");
-                    usuarioLogado = login; // Armazena o login do usuário
+                    leitorlogado = null; // Garante que não há leitor logado quando é admin
                     menuAdmin();
                 } else {
                     leitorlogado = usuarioAtual.getLeitor();
-                    // Certifique-se de que o leitor está na lista de leitores da biblioteca
-                    if (!biblioteca.getLeitores().contains(leitorlogado)) {
-                        biblioteca.adicionarLeitor(leitorlogado);
+                    if (leitorlogado != null) {
+                        System.out.println("Bem-vindo, " + leitorlogado.getNome());
+                        menuLeitor();
+                    } else {
+                        System.out.println("Erro: Dados do leitor não encontrados!");
+                        return;
                     }
-                    System.out.println("Bem-vindo, " + leitorlogado.getNome());
-                    menuLeitor();
                 }
             }
         } else {
@@ -269,7 +280,7 @@ public class Main {
                     pesquisarLivros();
                     break;
                 case 3:
-                    biblioteca.listarEmprestimosLeitor(leitorlogado);
+                    menuConsultaEmprestimosLeitor(); // Alterado para chamar o menu de consulta
                     break;
                 case 4:
                     realizarEmprestimo();
@@ -284,7 +295,6 @@ public class Main {
             }
         }
     }
-
     private static void menuCategorias() {
         while (true) {
             System.out.println("\n=== Gerenciar Categorias ===");
@@ -386,6 +396,71 @@ public class Main {
                     System.out.println("Opção inválida!");
             }
         }
+    }
+
+    private static void menuConsultaEmprestimosLeitor() {
+        while (true) {
+            System.out.println("\n=== Consulta de Empréstimos ===");
+            System.out.println("1. Todos os Empréstimos");
+            System.out.println("2. Buscar por Período");
+            System.out.println("3. Buscar por Termo (Título/Autor)");
+            System.out.println("4. Buscar por Código ISBN");
+            System.out.println("5. Voltar");
+
+            int opcao = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (opcao) {
+                case 1:
+                    biblioteca.listarEmprestimosLeitor(leitorlogado);
+                    break;
+                case 2:
+                    consultarEmprestimosPorPeriodo();
+                    break;
+                case 3:
+                    consultarEmprestimosPorTermo();
+                    break;
+                case 4:
+                    consultarEmprestimosPorCodigo();
+                    break;
+                case 5:
+                    return;
+                default:
+                    System.out.println("Opção inválida!");
+            }
+        }
+    }
+
+    private static void consultarEmprestimosPorPeriodo() {
+        try {
+            System.out.println("\nDigite a data inicial (dd/MM/yyyy): ");
+            String dataInicialStr = scanner.nextLine();
+            System.out.println("Digite a data final (dd/MM/yyyy): ");
+            String dataFinalStr = scanner.nextLine();
+
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            Date dataInicial = sdf.parse(dataInicialStr);
+            Date dataFinal = sdf.parse(dataFinalStr);
+
+            List<Emprestimo> emprestimos = biblioteca.consultarEmprestimosLeitorPorPeriodo(leitorlogado, dataInicial, dataFinal);
+            exibirResultadosEmprestimos(emprestimos);
+        } catch (ParseException e) {
+            System.out.println("Formato de data inválido! Use dd/MM/yyyy");
+        }
+    }
+
+    private static void consultarEmprestimosPorTermo() {
+        System.out.println("\nDigite o termo de busca (título ou autor): ");
+        String termo = scanner.nextLine();
+        List<Emprestimo> emprestimos = biblioteca.consultarEmprestimosLeitorPorTermo(leitorlogado, termo);
+        exibirResultadosEmprestimos(emprestimos);
+    }
+
+    private static void consultarEmprestimosPorCodigo() {
+        System.out.println("\nDigite o código ISBN do livro: ");
+        String codigo = scanner.nextLine();
+        List<Emprestimo> emprestimos = biblioteca.consultarEmprestimosLeitorPorCodigo(leitorlogado, codigo);
+        exibirResultadosEmprestimos(emprestimos);
     }
 
     private static void consultarPorCodigoLivro() {

@@ -3,6 +3,7 @@ package com.biblioteca;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Biblioteca {
     private List<Livro> livros;
@@ -140,8 +141,19 @@ public class Biblioteca {
         }
 
         for (Emprestimo emprestimo : emprestimos) {
-            System.out.print(emprestimo.informaEmprestimo());
+            if (emprestimo != null) {  // Verifica se o empréstimo não é nulo
+                System.out.print(emprestimo.informaEmprestimo());
+            }
         }
+    }
+
+    public void limparEmprestimosInvalidos() {
+        emprestimos.removeIf(emp ->
+                emp == null ||
+                        emp.getLivro() == null ||
+                        emp.getDataEmprestimo() == null
+        );
+        FileManager.salvarDados(this);
     }
 
     // Para o menu do leitor, podemos ter um método específico
@@ -231,6 +243,40 @@ public class Biblioteca {
         emprestimos.add(emprestimo);
         FileManager.salvarDados(this);
         System.out.println("Empréstimo realizado com sucesso!");
+    }
+
+
+    public List<Emprestimo> consultarEmprestimosLeitorPorPeriodo(Leitor leitor, Date inicio, Date fim) {
+        if (leitor == null) return new ArrayList<>();
+
+        return emprestimos.stream()
+                .filter(emp -> emp.getLeitor() != null &&
+                        emp.getLeitor().getCodigo().equals(leitor.getCodigo()) &&
+                        emp.getDataEmprestimo().after(inicio) &&
+                        emp.getDataEmprestimo().before(fim))
+                .collect(Collectors.toList());
+    }
+
+    public List<Emprestimo> consultarEmprestimosLeitorPorTermo(Leitor leitor, String termoBusca) {
+        if (leitor == null || termoBusca == null) return new ArrayList<>();
+
+        final String termoFinal = termoBusca.toLowerCase();
+        return emprestimos.stream()
+                .filter(emp -> emp.getLeitor() != null &&
+                        emp.getLeitor().getCodigo().equals(leitor.getCodigo()) &&
+                        (emp.getLivro().getTitulo().toLowerCase().contains(termoFinal) ||
+                                emp.getLivro().getAutor().toLowerCase().contains(termoFinal)))
+                .collect(Collectors.toList());
+    }
+
+    public List<Emprestimo> consultarEmprestimosLeitorPorCodigo(Leitor leitor, String codigo) {
+        if (leitor == null || codigo == null) return new ArrayList<>();
+
+        return emprestimos.stream()
+                .filter(emp -> emp.getLeitor() != null &&
+                        emp.getLeitor().getCodigo().equals(leitor.getCodigo()) &&
+                        emp.getLivro().getCodigoIsbn().equals(codigo))
+                .collect(Collectors.toList());
     }
 
     public void devolverLivro(Leitor leitor, String codigoLivro) {
