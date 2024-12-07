@@ -1,0 +1,37 @@
+# Maven compiled files
+target/
+
+# IDE specific files
+.idea/
+.settings/
+*.iml
+.classpath
+.project
+
+# Compiled class files
+*.class
+
+# Database/serialized files
+data/*.ser
+
+# Package files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
