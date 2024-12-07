@@ -1,4 +1,5 @@
 package com.biblioteca;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -15,30 +16,29 @@ public class Main {
     private static Biblioteca biblioteca = new Biblioteca();
     private static String usuarioLogado = null;
     private static Leitor leitorlogado = null;
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
     public static void main(String[] args) {
         inicializarSistema();
         menuLogin();
     }
 
+    // ==================== Inicialização e Login ====================
+
     private static void inicializarSistema() {
         FileManager.carregarDados(biblioteca);
-
         if (Usuario.getUsuarios() == null || Usuario.getUsuarios().isEmpty()) {
             System.out.println("\n=== Primeira Execução - Criação do Administrador ===");
             criarPrimeiroAdmin();
         }
     }
 
-
     private static void criarPrimeiroAdmin() {
-        System.out.println("Para começar, vamos criar o usuário administrador.");
+        String login = MenuUtils.lerString("Digite o login do administrador: ");
+        if (login == null) return;
 
-        System.out.println("Digite o login do administrador: ");
-        String login = scanner.nextLine();
-
-        System.out.println("Digite a senha do administrador: ");
-        String senha = scanner.nextLine();
+        String senha = MenuUtils.lerString("Digite a senha do administrador: ");
+        if (senha == null) return;
 
         Usuario admin = new Usuario(login, senha, true);
         List<Usuario> usuarios = new ArrayList<>();
@@ -51,31 +51,57 @@ public class Main {
 
     private static void menuLogin() {
         while (true) {
-            System.out.println("\n=== Sistema de Biblioteca ===");
             int opcao = MenuUtils.lerOpcaoMenu(1, 3,
-                    "1. Login\n" +
+                    "\n=== Sistema de Biblioteca ===\n" +
+                            "1. Login\n" +
                             "2. Realizar Cadastro\n" +
                             "3. Sair");
 
             switch (opcao) {
-                case 1:
-                    realizarLogin();
-                    break;
-                case 2:
-                    realizarCadastro();
-                    break;
-                case 3:
-                    System.out.println("Sistema encerrado.");
-                    System.exit(0);
-                    break;
-                case -1: // This case won't be reached in the main menu, but keeping for consistency
-                    System.out.println("Você está no menu principal.");
-                    break;
+                case 1: realizarLogin(); break;
+                case 2: realizarCadastro(); break;
+                case 3: System.out.println("Sistema encerrado."); System.exit(0); break;
             }
         }
     }
 
-    // Em Main.java, atualize o método realizarCadastro:
+    private static void realizarLogin() {
+        String login = MenuUtils.lerString("Login: ");
+        if (login == null) return;
+
+        String senha = MenuUtils.lerString("Senha: ");
+        if (senha == null) return;
+
+        if (Usuario.autenticar(login, senha)) {
+            Usuario usuarioAtual = null;
+            for (Usuario usuario : Usuario.getUsuarios()) {
+                if (usuario.getLogin().equals(login)) {
+                    usuarioAtual = usuario;
+                    break;
+                }
+            }
+
+            if (usuarioAtual != null) {
+                usuarioLogado = login;
+                if (usuarioAtual.isAdmin()) {
+                    System.out.println("Bem-vindo, Administrador!");
+                    leitorlogado = null;
+                    menuAdmin();
+                } else {
+                    leitorlogado = usuarioAtual.getLeitor();
+                    if (leitorlogado != null) {
+                        System.out.println("Bem-vindo, " + leitorlogado.getNome());
+                        menuLeitor();
+                    } else {
+                        System.out.println("Erro: Dados do leitor não encontrados!");
+                    }
+                }
+            }
+        } else {
+            System.out.println("Login ou senha inválidos!");
+        }
+    }
+
     private static void realizarCadastro() {
         String login = MenuUtils.lerString("Digite seu login: ");
         if (login == null) return;
@@ -104,121 +130,35 @@ public class Main {
             System.out.println("Leitor cadastrado com sucesso!");
             menuLeitor();
         }
-
         FileManager.salvarDados(biblioteca);
     }
-    // Em Main.java, atualize o método realizarLogin:
-    private static void realizarLogin() {
-        System.out.println("Login: ");
-        String login = scanner.nextLine();
-        System.out.println("Senha: ");
-        String senha = scanner.nextLine();
 
-        if (Usuario.autenticar(login, senha)) {
-            Usuario usuarioAtual = null;
-            for (Usuario usuario : Usuario.getUsuarios()) {
-                if (usuario.getLogin().equals(login)) {
-                    usuarioAtual = usuario;
-                    break;
-                }
-            }
-
-            if (usuarioAtual != null) {
-                usuarioLogado = login;
-
-                if (usuarioAtual.isAdmin()) {
-                    System.out.println("Bem-vindo, Administrador!");
-                    leitorlogado = null; // Garante que não há leitor logado quando é admin
-                    menuAdmin();
-                } else {
-                    leitorlogado = usuarioAtual.getLeitor();
-                    if (leitorlogado != null) {
-                        System.out.println("Bem-vindo, " + leitorlogado.getNome());
-                        menuLeitor();
-                    } else {
-                        System.out.println("Erro: Dados do leitor não encontrados!");
-                        return;
-                    }
-                }
-            }
-        } else {
-            System.out.println("Login ou senha inválidos!");
-        }
-    }
+    // ==================== Menus Principais ====================
 
     private static void menuAdmin() {
         while (true) {
-            int opcao = MenuUtils.lerOpcaoMenu(1, 7,
-                    "=== Menu Administrador ===\n" +
+            int opcao = MenuUtils.lerOpcaoMenu(1, 4,
+                    "\n=== Menu Administrador ===\n" +
                             "1. Gerenciar Categorias\n" +
                             "2. Gerenciar Livros\n" +
-                            "3. Listar Empréstimos\n" +
-                            "4. Mostrar Banco de Dados\n" +
-                            "5. Carregar Dados Exemplo\n" +
-                            "6. Limpar Banco de Dados\n" +
-                            "7. Logout");
+                            "3. Gerenciar Empréstimos\n" +
+                            "4. Logout");
 
             switch (opcao) {
-                case 1:
-                    menuCategorias();
-                    break;
-                case 2:
-                    menuLivros();
-                    break;
-                case 3:
-                    biblioteca.listarEmprestimos();
-                    break;
-                case 4:
-                    mostrarConteudoBanco();
-                    break;
-                case 5:
-                    carregarDadosExemplo();
-                    break;
-                case 6:
-                    limparBanco();
-                    biblioteca = new Biblioteca();
-                    break;
-                case 7:
-                case -1:
+                case 1: menuCategorias(); break;
+                case 2: menuLivros(); break;
+                case 3: menuGerenciarEmprestimos(); break;
+                case 4: case -1:
                     usuarioLogado = null;
                     return;
             }
         }
     }
-    private static void carregarDadosExemplo() {
-        System.out.println("\n=== Carregando Dados Exemplo ===");
-
-        Categoria literatura = new Categoria("Literatura", "LIT");
-        Categoria ficcaoCientifica = new Categoria("Ficção Científica", "FIC");
-        Categoria romance = new Categoria("Romance", "ROM");
-        Categoria tecnico = new Categoria("Técnico", "TEC");
-
-        biblioteca.adicionarCategorias(literatura);
-        biblioteca.adicionarCategorias(ficcaoCientifica);
-        biblioteca.adicionarCategorias(romance);
-        biblioteca.adicionarCategorias(tecnico);
-
-        Livro livro1 = new Livro("1984", "George Orwell", "123456", 5, ficcaoCientifica);
-        Livro livro2 = new Livro("O Senhor dos Anéis", "J.R.R. Tolkien", "789012", 3, ficcaoCientifica);
-        Livro livro3 = new Livro("Dom Casmurro", "Machado de Assis", "345678", 4, literatura);
-        Livro livro4 = new Livro("Clean Code", "Robert C. Martin", "901234", 2, tecnico);
-        Livro livro5 = new Livro("Orgulho e Preconceito", "Jane Austen", "567890", 3, romance);
-
-        biblioteca.adicionarLivro(livro1);
-        biblioteca.adicionarLivro(livro2);
-        biblioteca.adicionarLivro(livro3);
-        biblioteca.adicionarLivro(livro4);
-        biblioteca.adicionarLivro(livro5);
-
-        FileManager.salvarDados(biblioteca);
-        System.out.println("Dados exemplo carregados com sucesso!");
-    }
-
 
     private static void menuLeitor() {
         while (true) {
             int opcao = MenuUtils.lerOpcaoMenu(1, 6,
-                    "=== Menu do Leitor ===\n" +
+                    "\n=== Menu do Leitor ===\n" +
                             "1. Consultar Livros Disponíveis\n" +
                             "2. Pesquisar Livros\n" +
                             "3. Meus Empréstimos\n" +
@@ -227,24 +167,38 @@ public class Main {
                             "6. Logout");
 
             switch (opcao) {
-                case 1:
-                    biblioteca.listarLivrosDisponiveis();
-                    break;
-                case 2:
-                    pesquisarLivros();
-                    break;
-                case 3:
-                    menuConsultaEmprestimosLeitor();
-                    break;
-                case 4:
-                    realizarEmprestimo();
-                    break;
-                case 5:
-                    realizarDevolucao();
-                    break;
-                case 6:
-                case -1:
-                    return;
+                case 1: biblioteca.listarLivrosDisponiveis(); break;
+                case 2: pesquisarLivros(); break;
+                case 3: menuConsultaEmprestimosLeitor(); break;
+                case 4: realizarEmprestimo(); break;
+                case 5: realizarDevolucao(); break;
+                case 6: case -1: return;
+            }
+        }
+    }
+
+    // ==================== Menus de Gerenciamento ====================
+
+    private static void menuGerenciarEmprestimos() {
+        while (true) {
+            int opcao = MenuUtils.lerOpcaoMenu(1, 7,
+                    "\n=== Gerenciar Empréstimos ===\n" +
+                            "1. Listar todos os empréstimos\n" +
+                            "2. Consultar empréstimos por livro\n" +
+                            "3. Consultar empréstimos por leitor\n" +
+                            "4. Consultar empréstimos por data\n" +
+                            "5. Alterar data de devolução\n" +
+                            "6. Marcar empréstimo como devolvido\n" +
+                            "7. Voltar");
+
+            switch (opcao) {
+                case 1: listarTodosEmprestimos(); break;
+                case 2: consultarEmprestimosPorLivro(); break;
+                case 3: consultarEmprestimosPorLeitor(); break;
+                case 4: consultarEmprestimosPorData(); break;
+                case 5: alterarDataDevolucao(); break;
+                case 6: marcarEmprestimoComoDevolvido(); break;
+                case 7: case -1: return;
             }
         }
     }
@@ -252,7 +206,7 @@ public class Main {
     private static void menuCategorias() {
         while (true) {
             int opcao = MenuUtils.lerOpcaoMenu(1, 5,
-                    "=== Gerenciar Categorias ===\n" +
+                    "\n=== Gerenciar Categorias ===\n" +
                             "1. Adicionar Categoria\n" +
                             "2. Listar Categorias\n" +
                             "3. Buscar Categoria\n" +
@@ -260,222 +214,22 @@ public class Main {
                             "5. Remover Categoria");
 
             switch (opcao) {
-                case 1:
-                    adicionarCategoria();
-                    break;
-                case 2:
-                    biblioteca.listarCategorias();
-                    break;
-                case 3:
-                    buscarCategoria();
-                    break;
-                case 4:
-                    editarCategoria();
-                    break;
-                case 5:
-                    removerCategoria();
-                    break;
-                case -1:
-                    return;
+                case 1: adicionarCategoria(); break;
+                case 2: biblioteca.listarCategorias(); break;
+                case 3: buscarCategoria(); break;
+                case 4: editarCategoria(); break;
+                case 5: removerCategoria(); break;
+                case -1: return;
             }
-        }
-    }
-
-    private static void menuEmprestimos() {
-        while (true) {
-            System.out.println("\n=== Gerenciar Empréstimos ===");
-            System.out.println("1. Listar Livros Disponiveis");
-            System.out.println("2. Retirar Livro");
-            System.out.println("3. Devolver Livro");
-            System.out.println("4. Consultar Empréstimos");  // Nova opção
-            System.out.println("5. Voltar");
-
-            int opcao = scanner.nextInt();
-            scanner.nextLine();
-
-            switch (opcao) {
-                case 1:
-                    biblioteca.listarEmprestimos();
-                    break;
-                case 2:
-                    biblioteca.listarLivrosDisponiveis();
-                    System.out.println("Digite o código do livro para retirar: ");
-                    String codigoLivro = scanner.nextLine();
-                    biblioteca.emprestarLivro(leitorlogado, codigoLivro);
-                    break;
-                case 3:
-                    System.out.println("Digite o código do livro para devolver: ");
-                    String codigoDevolucao = scanner.nextLine();
-                    biblioteca.devolverLivro(leitorlogado, codigoDevolucao);
-                    break;
-                case 4:
-                    menuConsultaEmprestimos();  // Novo método
-                    break;
-                case 5:
-                    return;
-                default:
-                    System.out.println("Opção inválida!");
-            }
-        }
-    }
-    private static void menuConsultaEmprestimos() {
-        while (true) {
-            int opcao = MenuUtils.lerOpcaoMenu(1, 4,
-                    "=== Consulta de Empréstimos ===\n" +
-                            "1. Consultar por código do livro\n" +
-                            "2. Consultar por nome do livro\n" +
-                            "3. Consultar por intervalo de datas\n" +
-                            "4. Voltar");
-
-            switch (opcao) {
-                case 1:
-                    consultarPorCodigoLivro();
-                    break;
-                case 2:
-                    consultarPorNomeLivro();
-                    break;
-                case 3:
-                    consultarPorIntervaloData();
-                    break;
-                case 4:
-                case -1:
-                    return;
-            }
-        }
-    }
-    private static void menuConsultaEmprestimosLeitor() {
-        while (true) {
-            int opcao = MenuUtils.lerOpcaoMenu(1, 5,
-                    "=== Consulta de Empréstimos ===\n" +
-                            "1. Todos os Empréstimos\n" +
-                            "2. Buscar por Período\n" +
-                            "3. Buscar por Termo (Título/Autor)\n" +
-                            "4. Buscar por Código ISBN\n" +
-                            "5. Voltar");
-
-            switch (opcao) {
-                case 1:
-                    biblioteca.listarEmprestimosLeitor(leitorlogado);
-                    break;
-                case 2:
-                    consultarEmprestimosPorPeriodo();
-                    break;
-                case 3:
-                    consultarEmprestimosPorTermo();
-                    break;
-                case 4:
-                    consultarEmprestimosPorCodigo();
-                    break;
-                case 5:
-                case -1:
-                    return;
-            }
-        }
-    }
-
-    private static void consultarEmprestimosPorPeriodo() {
-        try {
-            System.out.println("\nDigite a data inicial (dd/MM/yyyy): ");
-            String dataInicialStr = scanner.nextLine();
-            System.out.println("Digite a data final (dd/MM/yyyy): ");
-            String dataFinalStr = scanner.nextLine();
-
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-            Date dataInicial = sdf.parse(dataInicialStr);
-            Date dataFinal = sdf.parse(dataFinalStr);
-
-            List<Emprestimo> emprestimos = biblioteca.consultarEmprestimosLeitorPorPeriodo(leitorlogado, dataInicial, dataFinal);
-            exibirResultadosEmprestimos(emprestimos);
-        } catch (ParseException e) {
-            System.out.println("Formato de data inválido! Use dd/MM/yyyy");
-        }
-    }
-
-    private static void consultarEmprestimosPorTermo() {
-        System.out.println("\nDigite o termo de busca (título ou autor): ");
-        String termo = scanner.nextLine();
-        List<Emprestimo> emprestimos = biblioteca.consultarEmprestimosLeitorPorTermo(leitorlogado, termo);
-        exibirResultadosEmprestimos(emprestimos);
-    }
-
-    private static void consultarEmprestimosPorCodigo() {
-        System.out.println("\nDigite o código ISBN do livro: ");
-        String codigo = scanner.nextLine();
-        List<Emprestimo> emprestimos = biblioteca.consultarEmprestimosLeitorPorCodigo(leitorlogado, codigo);
-        exibirResultadosEmprestimos(emprestimos);
-    }
-
-    private static void consultarPorCodigoLivro() {
-        System.out.println("Digite o código ISBN do livro: ");
-        String codigoLivro = scanner.nextLine();
-
-        List<Emprestimo> emprestimos = biblioteca.consultarEmprestimosPorLivro(codigoLivro);
-        exibirResultadosEmprestimos(emprestimos);
-    }
-
-    private static void consultarPorNomeLivro() {
-        System.out.println("Digite o nome do livro: ");
-        String nomeLivro = scanner.nextLine();
-
-        List<Livro> livros = biblioteca.buscarLivros(nomeLivro);
-        List<Emprestimo> todosEmprestimos = new ArrayList<>();
-
-        for (Livro livro : livros) {
-            List<Emprestimo> emprestimosDoLivro = biblioteca.consultarEmprestimosPorLivro(livro.getCodigoIsbn());
-            todosEmprestimos.addAll(emprestimosDoLivro);
-        }
-
-        exibirResultadosEmprestimos(todosEmprestimos);
-    }
-
-    private static void consultarPorIntervaloData() {
-        try {
-            System.out.println("Digite a data inicial (dd/MM/yyyy): ");
-            String dataInicialStr = scanner.nextLine();
-            System.out.println("Digite a data final (dd/MM/yyyy): ");
-            String dataFinalStr = scanner.nextLine();
-
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-            Date dataInicial = sdf.parse(dataInicialStr);
-            Date dataFinal = sdf.parse(dataFinalStr);
-
-            List<Emprestimo> emprestimos = biblioteca.consultarEmprestimosPorData(dataInicial, dataFinal);
-            exibirResultadosEmprestimos(emprestimos);
-
-        } catch (ParseException e) {
-            System.out.println("Formato de data inválido! Use dd/MM/yyyy");
-        }
-    }
-
-    private static void exibirResultadosEmprestimos(List<Emprestimo> emprestimos) {
-        if (emprestimos.isEmpty()) {
-            System.out.println("Nenhum empréstimo encontrado!");
-            return;
-        }
-
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        System.out.println("\n=== Empréstimos Encontrados ===");
-
-        for (Emprestimo emp : emprestimos) {
-            System.out.println("\nLeitor: " + emp.getLeitor().getNome());
-            System.out.println("Livro: " + emp.getLivro().getTitulo());
-            System.out.println("Data de Retirada: " + sdf.format(emp.getDataEmprestimo()));
-            if (emp.getDataDevolucao() != null) {
-                System.out.println("Data de Devolução: " + sdf.format(emp.getDataDevolucao()));
-            } else {
-                System.out.println("Status: Em andamento");
-            }
-            System.out.println("----------------------------------------");
         }
     }
 
     private static void menuLivros() {
         while (true) {
-            String menuOptions = "=== Menu Livros ===\n" +
+            boolean isAdmin = Usuario.isAdmin(usuarioLogado);
+            String menuOptions = "\n=== Menu Livros ===\n" +
                     "1. Pesquisar Livros\n" +
                     "2. Listar Todos os Livros\n";
-
-            boolean isAdmin = Usuario.isAdmin(usuarioLogado);
             int maxOption = 2;
 
             if (isAdmin) {
@@ -488,39 +242,296 @@ public class Main {
             int opcao = MenuUtils.lerOpcaoMenu(1, maxOption, menuOptions);
 
             switch (opcao) {
-                case 1:
-                    pesquisarLivros();
-                    break;
-                case 2:
-                    biblioteca.listarLivros();
-                    break;
-                case 3:
-                    if (isAdmin) adicionarLivro();
-                    break;
-                case 4:
-                    if (isAdmin) editarLivro();
-                    break;
-                case 5:
-                    if (isAdmin) removerLivro();
-                    break;
-                case -1:
-                    return;
+                case 1: pesquisarLivros(); break;
+                case 2: biblioteca.listarLivros(); break;
+                case 3: if (isAdmin) adicionarLivro(); break;
+                case 4: if (isAdmin) editarLivro(); break;
+                case 5: if (isAdmin) removerLivro(); break;
+                case -1: return;
             }
         }
     }
+
+    private static void adicionarLivro() {
+        String titulo = MenuUtils.lerString("Título do livro: ");
+        if (titulo == null) return;
+
+        String autor = MenuUtils.lerString("Autor do livro: ");
+        if (autor == null) return;
+
+        String isbn = MenuUtils.lerString("ISBN do livro: ");
+        if (isbn == null) return;
+
+        Integer copias = MenuUtils.lerInteiro("Número de cópias: ", 1, Integer.MAX_VALUE);
+        if (copias == null) return;
+
+        System.out.println("\nCategorias disponíveis:");
+        List<Categoria> categoriasDisponiveis = biblioteca.getCategorias();
+        if (categoriasDisponiveis.isEmpty()) {
+            System.out.println("Não há categorias cadastradas. Por favor, cadastre uma categoria primeiro.");
+            return;
+        }
+
+        for (Categoria cat : categoriasDisponiveis) {
+            System.out.println("Código: " + cat.getCodigo() + " - Nome: " + cat.getNome());
+        }
+
+        String codCategoria = MenuUtils.lerString("\nDigite o código da categoria desejada: ");
+        if (codCategoria == null) return;
+
+        Categoria categoria = biblioteca.buscarPorCodigo(codCategoria);
+        if (categoria == null) {
+            System.out.println("Categoria não encontrada!");
+            return;
+        }
+
+        Livro novoLivro = new Livro(titulo, autor, isbn, copias, categoria);
+        biblioteca.adicionarLivro(novoLivro);
+        FileManager.salvarDados(biblioteca);
+        System.out.println("Livro adicionado com sucesso!");
+    }
+
+    private static void editarLivro() {
+        String isbn = MenuUtils.lerString("Digite o ISBN do livro que deseja editar: ");
+        if (isbn == null) return;
+
+        Livro livro = biblioteca.buscarPorIsbn(isbn);
+        if (livro != null) {
+            String novoTitulo = MenuUtils.lerString("Digite o novo título (ou deixe vazio para manter o atual): ");
+            String novoAutor = MenuUtils.lerString("Digite o novo autor (ou deixe vazio para manter o atual): ");
+
+            System.out.println("Número atual de cópias: " + livro.getCopiasTotal());
+            Integer novasCopias = MenuUtils.lerInteiro("Digite o novo número de cópias (ou 0 para manter o atual): ", 0, Integer.MAX_VALUE);
+            if (novasCopias != null && novasCopias == 0) novasCopias = -1;  // -1 indica que não deve ser alterado
+
+            System.out.println("Código da categoria atual: " + (livro.getCategoria() != null ? livro.getCategoria().getCodigo() : "Nenhuma"));
+            String codCategoria = MenuUtils.lerString("Digite o novo código da categoria (ou deixe vazio para manter a atual): ");
+
+            Categoria novaCategoria = null;
+            if (codCategoria != null && !codCategoria.trim().isEmpty()) {
+                novaCategoria = biblioteca.buscarPorCodigo(codCategoria);
+                if (novaCategoria == null) {
+                    System.out.println("Categoria não encontrada!");
+                    return;
+                }
+            }
+
+            biblioteca.editarLivro(isbn, novoTitulo, novoAutor, novasCopias, novaCategoria);
+            System.out.println("Livro editado com sucesso!");
+            FileManager.salvarDados(biblioteca);
+        } else {
+            System.out.println("Livro não encontrado!");
+        }
+    }
+
+    private static void removerLivro() {
+        String isbn = MenuUtils.lerString("Digite o ISBN do livro a ser removido: ");
+        if (isbn == null) return;
+
+        if (biblioteca.removerLivro(isbn)) {
+            System.out.println("Livro removido com sucesso!");
+            FileManager.salvarDados(biblioteca);
+        } else {
+            System.out.println("Livro não encontrado!");
+        }
+    }
+    private static void menuConsultaEmprestimosLeitor() {
+        while (true) {
+            int opcao = MenuUtils.lerOpcaoMenu(1, 5,
+                    "\n=== Consulta de Empréstimos ===\n" +
+                            "1. Todos os Empréstimos\n" +
+                            "2. Buscar por Período\n" +
+                            "3. Buscar por Termo (Título/Autor)\n" +
+                            "4. Buscar por Código ISBN\n" +
+                            "5. Voltar");
+
+            switch (opcao) {
+                case 1: biblioteca.listarEmprestimosLeitor(leitorlogado); break;
+                case 2: consultarEmprestimosPorPeriodo(); break;
+                case 3: consultarEmprestimosPorTermo(); break;
+                case 4: consultarEmprestimosPorCodigo(); break;
+                case 5: case -1: return;
+            }
+        }
+    }
+
+    // ==================== Operações de Empréstimo ====================
+
+    private static void listarTodosEmprestimos() {
+        List<Emprestimo> emprestimos = biblioteca.getEmprestimos();
+        if (emprestimos.isEmpty()) {
+            System.out.println("Não há empréstimos registrados.");
+            return;
+        }
+        exibirEmprestimos(emprestimos);
+    }
+
+    private static void consultarEmprestimosPorLivro() {
+        String isbn = MenuUtils.lerString("Digite o código ISBN do livro: ");
+        if (isbn == null) return;
+
+        List<Emprestimo> emprestimos = biblioteca.consultarEmprestimosPorLivro(isbn);
+        if (emprestimos.isEmpty()) {
+            System.out.println("Não há empréstimos registrados para este livro.");
+            return;
+        }
+        exibirEmprestimos(emprestimos);
+    }
+
+    private static void consultarEmprestimosPorLeitor() {
+        String termo = MenuUtils.lerString("Digite o código ou nome do leitor: ");
+        if (termo == null) return;
+
+        List<Emprestimo> emprestimos = biblioteca.consultarEmprestimosPorLeitor(termo);
+        if (emprestimos.isEmpty()) {
+            System.out.println("Não há empréstimos registrados para este leitor.");
+            return;
+        }
+        exibirEmprestimos(emprestimos);
+    }
+
+    private static void consultarEmprestimosPorData() {
+        try {
+            String dataInicialStr = MenuUtils.lerString("Digite a data inicial (dd/MM/yyyy): ");
+            if (dataInicialStr == null) return;
+
+            String dataFinalStr = MenuUtils.lerString("Digite a data final (dd/MM/yyyy): ");
+            if (dataFinalStr == null) return;
+
+            Date dataInicial = sdf.parse(dataInicialStr);
+            Date dataFinal = sdf.parse(dataFinalStr);
+
+            List<Emprestimo> emprestimos = biblioteca.consultarEmprestimosPorData(dataInicial, dataFinal);
+            if (emprestimos.isEmpty()) {
+                System.out.println("Não há empréstimos registrados neste período.");
+                return;
+            }
+            exibirEmprestimos(emprestimos);
+        } catch (ParseException e) {
+            System.out.println("Formato de data inválido. Use dd/MM/yyyy");
+        }
+    }
+
+    private static void consultarEmprestimosPorPeriodo() {
+        try {
+            String dataInicialStr = MenuUtils.lerString("Digite a data inicial (dd/MM/yyyy): ");
+            if (dataInicialStr == null) return;
+
+            String dataFinalStr = MenuUtils.lerString("Digite a data final (dd/MM/yyyy): ");
+            if (dataFinalStr == null) return;
+
+            Date dataInicial = sdf.parse(dataInicialStr);
+            Date dataFinal = sdf.parse(dataFinalStr);
+
+            List<Emprestimo> emprestimos = biblioteca.consultarEmprestimosLeitorPorPeriodo(leitorlogado, dataInicial, dataFinal);
+            exibirEmprestimos(emprestimos);
+        } catch (ParseException e) {
+            System.out.println("Formato de data inválido! Use dd/MM/yyyy");
+        }
+    }
+
+    private static void consultarEmprestimosPorTermo() {
+        String termo = MenuUtils.lerString("Digite o termo de busca (título ou autor): ");
+        if (termo == null) return;
+
+        List<Emprestimo> emprestimos = biblioteca.consultarEmprestimosLeitorPorTermo(leitorlogado, termo);
+        exibirEmprestimos(emprestimos);
+    }
+
+    private static void consultarEmprestimosPorCodigo() {
+        String codigo = MenuUtils.lerString("Digite o código ISBN do livro: ");
+        if (codigo == null) return;
+
+        List<Emprestimo> emprestimos = biblioteca.consultarEmprestimosLeitorPorCodigo(leitorlogado, codigo);
+        exibirEmprestimos(emprestimos);
+    }
+
+    private static void alterarDataDevolucao() {
+        // Lista os empréstimos primeiro
+        listarTodosEmprestimos();
+
+        // Carrega a lista de empréstimos
+        List<Emprestimo> emprestimos = biblioteca.getEmprestimos();
+        if (emprestimos.isEmpty()) {
+            System.out.println("Não há empréstimos registrados.");
+            return;
+        }
+
+        // Agora podemos usar emprestimos.size() como limite
+        Integer codigoEmprestimo = MenuUtils.lerInteiro(
+                "Digite o código do empréstimo que deseja alterar: ",
+                1,
+                emprestimos.size()
+        );
+        if (codigoEmprestimo == null) return;
+
+        if (codigoEmprestimo <= 0 || codigoEmprestimo > emprestimos.size()) {
+            System.out.println("Código de empréstimo inválido.");
+            return;
+        }
+
+        String dataStr = MenuUtils.lerString("Digite a nova data de devolução (dd/MM/yyyy): ");
+        if (dataStr == null) return;
+
+        try {
+            Date novaData = sdf.parse(dataStr);
+            Emprestimo emprestimo = emprestimos.get(codigoEmprestimo - 1);
+            emprestimo.setDataDevolucao(novaData);
+            System.out.println("Data de devolução alterada com sucesso!");
+            FileManager.salvarDados(biblioteca);
+        } catch (ParseException e) {
+            System.out.println("Formato de data inválido. Use dd/MM/yyyy");
+        }
+    }
+
+    private static void marcarEmprestimoComoDevolvido() {
+        // Lista os empréstimos primeiro
+        listarTodosEmprestimos();
+
+        // Carrega a lista de empréstimos
+        List<Emprestimo> emprestimos = biblioteca.getEmprestimos();
+        if (emprestimos.isEmpty()) {
+            System.out.println("Não há empréstimos registrados.");
+            return;
+        }
+
+        // Agora podemos usar emprestimos.size() como limite
+        Integer codigoEmprestimo = MenuUtils.lerInteiro(
+                "Digite o código do empréstimo que deseja marcar como devolvido: ",
+                1,
+                emprestimos.size()
+        );
+        if (codigoEmprestimo == null) return;
+
+        if (codigoEmprestimo <= 0 || codigoEmprestimo > emprestimos.size()) {
+            System.out.println("Código de empréstimo inválido.");
+            return;
+        }
+
+        Emprestimo emprestimo = emprestimos.get(codigoEmprestimo - 1);
+        if (emprestimo.getDataDevolucao() != null) {
+            System.out.println("Este empréstimo já foi devolvido.");
+            return;
+        }
+
+        emprestimo.setDataDevolucao(new Date());
+        emprestimo.getLivro().devolverCopia();
+
+        System.out.println("Empréstimo marcado como devolvido com sucesso!");
+        FileManager.salvarDados(biblioteca);
+    }
+    // ==================== Operações de Livros ====================
+
     private static void pesquisarLivros() {
-        System.out.println("\n=== Pesquisar Livros ===");
-        System.out.println("Digite o termo de pesquisa (ISBN, título ou autor): ");
-        String termo = scanner.nextLine();
+        String termo = MenuUtils.lerString("\nDigite o termo de pesquisa (ISBN, título ou autor): ");
+        if (termo == null) return;
 
         List<Livro> resultados = biblioteca.pesquisarLivros(termo);
         biblioteca.exibirResultadosPesquisa(resultados);
 
         if (!resultados.isEmpty() && leitorlogado != null) {
-            System.out.println("\nDeseja realizar um empréstimo? (S/N)");
-            String resposta = scanner.nextLine().trim();
-
-            if (resposta.equalsIgnoreCase("S")) {
+            Boolean realizarEmprestimo = MenuUtils.lerSimNao("\nDeseja realizar um empréstimo?");
+            if (realizarEmprestimo != null && realizarEmprestimo) {
                 realizarEmprestimoPorIndice(resultados);
             }
         }
@@ -528,7 +539,7 @@ public class Main {
 
     private static void realizarEmprestimo() {
         int opcao = MenuUtils.lerOpcaoMenu(1, 2,
-                "=== Realizar Empréstimo ===\n" +
+                "\n=== Realizar Empréstimo ===\n" +
                         "1. Ver todos os livros disponíveis\n" +
                         "2. Pesquisar livros específicos");
 
@@ -554,312 +565,138 @@ public class Main {
                     }
                 }
                 break;
-
-            case -1:
-                return;
-        }
-    }
-    private static void realizarEmprestimoPorIndice(List<Livro> livros) {
-        System.out.println("\nDigite o número (#) do livro que deseja emprestar: ");
-        try {
-            int indice = scanner.nextInt();
-            scanner.nextLine(); // Limpar buffer
-
-            if (indice > 0 && indice <= livros.size()) {
-                Livro livroSelecionado = livros.get(indice - 1);
-
-                if (livroSelecionado.temCopiaDisponivel()) {
-                    biblioteca.emprestarLivro(leitorlogado, livroSelecionado.getCodigoIsbn());
-                } else {
-                    System.out.println("Este livro não possui cópias disponíveis no momento.");
-                    System.out.println("Total de cópias: " + livroSelecionado.getCopiasTotal());
-                    System.out.println("Cópias disponíveis: " + livroSelecionado.getCopiasDisponiveis());
-                }
-            } else {
-                System.out.println("Número de livro inválido!");
-            }
-        } catch (NumberFormatException e) {
-            System.out.println("Por favor, digite um número válido.");
         }
     }
 
     private static void adicionarCategoria() {
-        System.out.println("Nome da categoria: ");
-        String nome = scanner.nextLine();
-        System.out.println("Código da categoria: ");
-        String codigo = scanner.nextLine();
+        String nome = MenuUtils.lerString("Nome da categoria: ");
+        if (nome == null) return;
+
+        String codigo = MenuUtils.lerString("Código da categoria: ");
+        if (codigo == null) return;
+
         Categoria novaCategoria = new Categoria(nome, codigo);
         biblioteca.adicionarCategorias(novaCategoria);
-        FileManager.salvarDados(biblioteca);
         System.out.println("Categoria adicionada com sucesso!");
+        FileManager.salvarDados(biblioteca);
     }
 
     private static void editarCategoria() {
-        System.out.println("Digite o código da categoria que deseja editar: ");
-        String codigo = scanner.nextLine();
+        String codigo = MenuUtils.lerString("Digite o código da categoria que deseja editar: ");
+        if (codigo == null) return;
+
         Categoria categoria = biblioteca.buscarPorCodigo(codigo);
-
         if (categoria != null) {
-            System.out.println("Nome atual: " + categoria.getNome());
-            System.out.println("Digite o novo nome (ou deixe vazio para manter o atual): ");
-            String novoNome = scanner.nextLine();
-
-            System.out.println("Código atual: " + categoria.getCodigo());
-            System.out.println("Digite o novo código (ou deixe vazio para manter o atual): ");
-            String novoCodigo = scanner.nextLine();
+            String novoNome = MenuUtils.lerString("Digite o novo nome (ou deixe vazio para manter o atual): ");
+            String novoCodigo = MenuUtils.lerString("Digite o novo código (ou deixe vazio para manter o atual): ");
 
             biblioteca.editarCategoria(codigo, novoNome, novoCodigo);
-            FileManager.salvarDados(biblioteca);
             System.out.println("Categoria editada com sucesso!");
+            FileManager.salvarDados(biblioteca);
+        } else {
+            System.out.println("Categoria não encontrada!");
+        }
+    }
+
+    private static void removerCategoria() {
+        String codigo = MenuUtils.lerString("Digite o código da categoria a ser removida: ");
+        if (codigo == null) return;
+
+        if (biblioteca.removerCategoria(codigo)) {
+            System.out.println("Categoria removida com sucesso!");
+            FileManager.salvarDados(biblioteca);
         } else {
             System.out.println("Categoria não encontrada!");
         }
     }
 
     private static void buscarCategoria() {
-        System.out.println("1. Buscar por código");
-        System.out.println("2. Buscar por nome");
-        int opcao = scanner.nextInt();
-        scanner.nextLine();
+        int opcao = MenuUtils.lerOpcaoMenu(1, 2,
+                "1. Buscar por código\n" +
+                        "2. Buscar por nome");
 
         switch (opcao) {
             case 1:
-                System.out.println("Digite o código: ");
-                String codigo = scanner.nextLine();
-                Categoria catCodigo = biblioteca.buscarPorCodigo(codigo);
-                if (catCodigo != null) {
-                    System.out.println("Categoria encontrada: " + catCodigo.getNome());
-                } else {
-                    System.out.println("Categoria não encontrada!");
+                String codigo = MenuUtils.lerString("Digite o código: ");
+                if (codigo != null) {
+                    Categoria catCodigo = biblioteca.buscarPorCodigo(codigo);
+                    if (catCodigo != null) {
+                        System.out.println("Categoria encontrada: " + catCodigo.getNome());
+                    } else {
+                        System.out.println("Categoria não encontrada!");
+                    }
                 }
                 break;
             case 2:
-                System.out.println("Digite o nome: ");
-                String nome = scanner.nextLine();
-                Categoria catNome = biblioteca.buscarPorNome(nome);
-                if (catNome != null) {
-                    System.out.println("Categoria encontrada: " + catNome.getNome());
-                } else {
-                    System.out.println("Categoria não encontrada!");
+                String nome = MenuUtils.lerString("Digite o nome: ");
+                if (nome != null) {
+                    Categoria catNome = biblioteca.buscarPorNome(nome);
+                    if (catNome != null) {
+                        System.out.println("Categoria encontrada: " + catNome.getNome());
+                    } else {
+                        System.out.println("Categoria não encontrada!");
+                    }
                 }
                 break;
-            default:
-                System.out.println("Opção inválida!");
         }
     }
 
-    private static void removerCategoria() {
-        System.out.println("Digite o código da categoria a ser removida: ");
-        String codigo = scanner.nextLine();
-        if (biblioteca.removerCategoria(codigo)) {
-            FileManager.salvarDados(biblioteca);
-            System.out.println("Categoria removida com sucesso!");
-        } else {
-            System.out.println("Categoria não encontrada!");
-        }
-    }
+    private static void realizarEmprestimoPorIndice(List<Livro> livros) {
+        Integer indice = MenuUtils.lerInteiro("Digite o número (#) do livro que deseja emprestar: ", 1, livros.size());
+        if (indice == null) return;
 
-    private static void adicionarLivro() {
-        System.out.println("Título do livro: ");
-        String titulo = scanner.nextLine();
+        if (indice > 0 && indice <= livros.size()) {
+            Livro livroSelecionado = livros.get(indice - 1);
 
-        System.out.println("Autor do livro: ");
-        String autor = scanner.nextLine();
-
-        System.out.println("ISBN do livro: ");
-        String isbn = scanner.nextLine();
-
-        System.out.println("Número de cópias: ");
-        int copias = 0;
-        try {
-            copias = Integer.parseInt(scanner.nextLine());
-            if (copias < 1) {
-                System.out.println("O número de cópias deve ser maior que zero!");
-                return;
+            if (livroSelecionado.temCopiaDisponivel()) {
+                biblioteca.emprestarLivro(leitorlogado, livroSelecionado.getCodigoIsbn());
+            } else {
+                System.out.println("Este livro não possui cópias disponíveis no momento.");
+                System.out.println("Total de cópias: " + livroSelecionado.getCopiasTotal());
+                System.out.println("Cópias disponíveis: " + livroSelecionado.getCopiasDisponiveis());
             }
-        } catch (NumberFormatException e) {
-            System.out.println("Número de cópias inválido!");
-            return;
-        }
-
-        System.out.println("\nCategorias disponíveis:");
-        List<Categoria> categoriasDisponiveis = biblioteca.getCategorias();
-        if (categoriasDisponiveis.isEmpty()) {
-            System.out.println("Não há categorias cadastradas. Por favor, cadastre uma categoria primeiro.");
-            return;
-        }
-
-        for (Categoria cat : categoriasDisponiveis) {
-            System.out.println("Código: " + cat.getCodigo() + " - Nome: " + cat.getNome());
-        }
-
-        System.out.println("\nDigite o código da categoria desejada: ");
-        String codCategoria = scanner.nextLine();
-
-        Categoria categoria = biblioteca.buscarPorCodigo(codCategoria);
-        if (categoria == null) {
-            System.out.println("Categoria não encontrada!");
-            return;
-        }
-
-        Livro novoLivro = new Livro(titulo, autor, isbn, copias, categoria);
-        biblioteca.adicionarLivro(novoLivro);
-        System.out.println("Livro adicionado com sucesso!");
-    }
-
-    private static void editarLivro() {
-        System.out.println("Digite o ISBN do livro que deseja editar: ");
-        String isbn = scanner.nextLine();
-        Livro livro = biblioteca.buscarPorIsbn(isbn);
-
-        if (livro != null) {
-            System.out.println("Título atual: " + livro.getTitulo());
-            System.out.println("Digite o novo título (ou deixe vazio para manter o atual): ");
-            String novoTitulo = scanner.nextLine();
-
-            System.out.println("Autor atual: " + livro.getAutor());
-            System.out.println("Digite o novo autor (ou deixe vazio para manter o atual): ");
-            String novoAutor = scanner.nextLine();
-
-            System.out.println("Número atual de cópias: " + livro.getCopiasTotal());
-            System.out.println("Digite o novo número de cópias (ou deixe vazio para manter o atual): ");
-            String copiasInput = scanner.nextLine();
-
-            int novasCopias = -1;
-            if (!copiasInput.trim().isEmpty()) {
-                try {
-                    novasCopias = Integer.parseInt(copiasInput);
-                    if (novasCopias < 0) {
-                        System.out.println("O número de cópias não pode ser negativo!");
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                    System.out.println("Número de cópias inválido!");
-                    return;
-                }
-            }
-
-            System.out.println("Código da categoria atual: " + (livro.getCategoria() != null ? livro.getCategoria().getCodigo() : "Nenhuma"));
-            System.out.println("Digite o novo código da categoria (ou deixe vazio para manter a atual): ");
-            String codCategoria = scanner.nextLine();
-
-            Categoria novaCategoria = null;
-            if (!codCategoria.trim().isEmpty()) {
-                novaCategoria = biblioteca.buscarPorCodigo(codCategoria);
-                if (novaCategoria == null) {
-                    System.out.println("Categoria não encontrada!");
-                    return;
-                }
-            }
-
-            biblioteca.editarLivro(isbn, novoTitulo, novoAutor, novasCopias, novaCategoria);
-            System.out.println("Livro editado com sucesso!");
         } else {
-            System.out.println("Livro não encontrado!");
+            System.out.println("Número de livro inválido!");
         }
     }
-
-    private static void buscarLivro() {
-        System.out.println("Digite o ISBN do livro: ");
-        String isbn = scanner.nextLine();
-
-        Livro livro = biblioteca.buscarPorIsbn(isbn);
-        if (livro != null) {
-            System.out.println(livro.informaLivro());
-        } else {
-            System.out.println("Livro não encontrado!");
-        }
-    }
-
-    private static void removerLivro() {
-        System.out.println("Digite o ISBN do livro a ser removido: ");
-        String isbn = scanner.nextLine();
-
-        if (biblioteca.removerLivro(isbn)) {
-            FileManager.salvarDados(biblioteca);
-            System.out.println("Livro removido com sucesso!");
-        } else {
-            System.out.println("Livro não encontrado!");
-        }
-    }
-
     private static void realizarDevolucao() {
         biblioteca.listarEmprestimosLeitor(leitorlogado);
-        System.out.println("\nDigite o código do livro que deseja devolver: ");
-        String codigoLivro = scanner.nextLine();
-        biblioteca.devolverLivro(leitorlogado, codigoLivro);
-    }
-
-    private static void verificarDiretorio() {
-        File directory = new File("data");
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
-    }
-    private static void mostrarConteudoBanco() {
-        verificarDiretorio();
-        String DATA_DIR = "data";
-        System.out.println("\n=== Conteúdo do Banco de Dados ===");
-
-        System.out.println("\nUsuários:");
-        mostrarArquivo(DATA_DIR + "/usuarios.ser");
-
-        System.out.println("\nLivros:");
-        mostrarArquivo(DATA_DIR + "/livros.ser");
-
-        System.out.println("\nCategorias:");
-        mostrarArquivo(DATA_DIR + "/categorias.ser");
-
-        System.out.println("\nEmpréstimos:");
-        mostrarArquivo(DATA_DIR + "/emprestimos.ser");
-
-        System.out.println("\nLeitores:");
-        mostrarArquivo(DATA_DIR + "/leitores.ser");
-    }
-
-    private static void limparBanco() {
-        verificarDiretorio();
-        String DATA_DIR = "data";
-        System.out.println("\n=== Limpando Banco de Dados ===");
-        limparArquivo(DATA_DIR + "/usuarios.ser");
-        limparArquivo(DATA_DIR + "/livros.ser");
-        limparArquivo(DATA_DIR + "/categorias.ser");
-        limparArquivo(DATA_DIR + "/emprestimos.ser");
-        limparArquivo(DATA_DIR + "/leitores.ser");
-        System.out.println("Banco de dados limpo com sucesso!");
-    }
-
-    private static void limparArquivo(String nomeArquivo) {
-        try {
-            File file = new File(nomeArquivo);
-            if (file.exists()) {
-                FileWriter writer = new FileWriter(file);
-                writer.write("[]");
-                writer.close();
-                System.out.println("Arquivo " + nomeArquivo + " limpo.");
-            } else {
-                System.out.println("Arquivo " + nomeArquivo + " não existe.");
-            }
-        } catch (Exception e) {
-            System.out.println("Erro ao limpar " + nomeArquivo + ": " + e.getMessage());
+        String codigoLivro = MenuUtils.lerString("\nDigite o código do livro que deseja devolver: ");
+        if (codigoLivro != null) {
+            biblioteca.devolverLivro(leitorlogado, codigoLivro);
         }
     }
 
-    private static void mostrarArquivo(String nomeArquivo) {
-        try {
-            File file = new File(nomeArquivo);
-            if (file.exists()) {
-                BufferedReader reader = new BufferedReader(new FileReader(file));
-                String linha;
-                while ((linha = reader.readLine()) != null) {
-                    System.out.println(linha);
-                }
-                reader.close();
-            } else {
-                System.out.println("Arquivo " + nomeArquivo + " não existe.");
-            }
-        } catch (Exception e) {
-            System.out.println("Erro ao ler " + nomeArquivo + ": " + e.getMessage());
+    // ==================== Exibição de Dados ====================
+
+    private static void exibirEmprestimos(List<Emprestimo> emprestimos) {
+        if (emprestimos.isEmpty()) {
+            System.out.println("Nenhum empréstimo encontrado!");
+            return;
+        }
+
+        System.out.println("\nEmpréstimos encontrados:");
+        for (int i = 0; i < emprestimos.size(); i++) {
+            Emprestimo emp = emprestimos.get(i);
+            System.out.println("\nCódigo do Empréstimo: " + (i + 1));
+
+            System.out.println("=== Dados do Livro ===");
+            System.out.println("Título: " + emp.getLivro().getTitulo());
+            System.out.println("Autor: " + emp.getLivro().getAutor());
+            System.out.println("ISBN: " + emp.getLivro().getCodigoIsbn());
+            System.out.println("Categoria: " + (emp.getLivro().getCategoria() != null ?
+                    emp.getLivro().getCategoria().getNome() : "Sem categoria"));
+
+            System.out.println("\n=== Dados do Leitor ===");
+            System.out.println("Nome: " + emp.getLeitor().getNome());
+            System.out.println("Email: " + emp.getLeitor().getEmail());
+            System.out.println("Código: " + emp.getLeitor().getCodigo());
+
+            System.out.println("\n=== Dados do Empréstimo ===");
+            System.out.println("Data de empréstimo: " + sdf.format(emp.getDataEmprestimo()));
+            System.out.println("Data de devolução: " +
+                    (emp.getDataDevolucao() != null ? sdf.format(emp.getDataDevolucao()) : "Ainda não devolvido"));
+            System.out.println("------------------------");
         }
     }
 }

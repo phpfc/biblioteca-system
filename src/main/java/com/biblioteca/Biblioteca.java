@@ -426,10 +426,11 @@ public class Biblioteca {
         return resultados;
     }
 
-    public List<Emprestimo> consultarEmprestimosPorLeitor(Leitor leitor) {
+    public List<Emprestimo> consultarEmprestimosPorLeitor(String termo) {
         List<Emprestimo> resultados = new ArrayList<>();
-        for (Emprestimo emprestimo : emprestimos) {
-            if (emprestimo.getLeitor().getCodigo().equals(leitor.getCodigo())) {
+        for (Emprestimo emprestimo : this.emprestimos) {  // Use this.emprestimos para acessar a lista da classe
+            if (emprestimo.getLeitor().getNome().toLowerCase().contains(termo.toLowerCase()) ||
+                    emprestimo.getLeitor().getCodigo().equals(termo)) {
                 resultados.add(emprestimo);
             }
         }

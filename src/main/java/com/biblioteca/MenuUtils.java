@@ -127,25 +127,18 @@ public class MenuUtils {
      */
     public static Integer lerInteiro(String prompt, int min, int max) {
         while (true) {
-            System.out.println(prompt);
-            System.out.println("Digite 0 para voltar ao menu anterior");
-            System.out.print("Digite o número: ");
+            String input = lerString(prompt);
+            if (input == null) return null;
 
             try {
-                String input = scanner.nextLine().trim();
-
-                if (input.equals("0")) {
-                    return null;
-                }
-
-                int numero = Integer.parseInt(input);
-                if (numero >= min && numero <= max) {
-                    return numero;
+                int valor = Integer.parseInt(input);
+                if (valor >= min && valor <= max) {
+                    return valor;
                 } else {
-                    System.out.printf("Por favor, digite um número entre %d e %d.\n", min, max);
+                    System.out.println("Digite um número entre " + min + " e " + max);
                 }
             } catch (NumberFormatException e) {
-                System.out.println("Por favor, digite apenas números.");
+                System.out.println("Por favor, digite um número válido.");
             }
         }
     }
