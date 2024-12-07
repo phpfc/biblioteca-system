@@ -146,12 +146,34 @@ public class Biblioteca {
 
     // Para o menu do leitor, podemos ter um método específico
     public void listarEmprestimosLeitor(Leitor leitor) {
+        if (leitor == null) {
+            System.out.println("Erro: Leitor não identificado!");
+            return;
+        }
+
         System.out.println("=== Seus Empréstimos ===");
         boolean temEmprestimo = false;
 
         for (Emprestimo emprestimo : emprestimos) {
-            if (emprestimo.getLeitor().getCodigo().equals(leitor.getCodigo())) {
-                System.out.print(emprestimo.informaEmprestimo());
+            // Verifica se o empréstimo e seu leitor são válidos
+            if (emprestimo != null &&
+                    emprestimo.getLeitor() != null &&
+                    emprestimo.getLeitor().getCodigo().equals(leitor.getCodigo())) {
+
+                System.out.println("Código do Livro: " + emprestimo.getLivro().getCodigoIsbn());
+                System.out.println("Título: " + emprestimo.getLivro().getTitulo());
+                System.out.println("Leitor: " + emprestimo.getLeitor().getNome());
+                System.out.println("Email do Leitor: " + emprestimo.getLeitor().getEmail());
+                System.out.println("Código do Leitor: " + emprestimo.getLeitor().getCodigo());
+                System.out.println("Data do empréstimo: " + emprestimo.getDataEmprestimo());
+
+                if (emprestimo.getDataDevolucao() != null) {
+                    System.out.println("Status: Devolvido");
+                    System.out.println("Data de devolução: " + emprestimo.getDataDevolucao());
+                } else {
+                    System.out.println("Status: Em andamento");
+                }
+                System.out.println("-----------------------------");
                 temEmprestimo = true;
             }
         }
@@ -177,6 +199,11 @@ public class Biblioteca {
     }
 
     public void emprestarLivro(Leitor leitor, String codigoLivro) {
+        if (leitor == null) {
+            System.out.println("Erro: Leitor não identificado!");
+            return;
+        }
+
         Livro livro = buscarPorIsbn(codigoLivro);
         if (livro == null) {
             System.out.println("Livro não encontrado!");
@@ -188,8 +215,10 @@ public class Biblioteca {
             return;
         }
 
+        // Verifica se o leitor já tem um empréstimo ativo deste livro
         for (Emprestimo emp : emprestimos) {
-            if (emp.getLeitor().getCodigo().equals(leitor.getCodigo()) &&
+            if (emp.getLeitor() != null &&
+                    emp.getLeitor().getCodigo().equals(leitor.getCodigo()) &&
                     emp.getLivro().getCodigoIsbn().equals(codigoLivro) &&
                     emp.getDataDevolucao() == null) {
                 System.out.println("Você já possui um empréstimo ativo deste livro!");
@@ -225,8 +254,6 @@ public class Biblioteca {
         FileManager.salvarDados(this);
         System.out.println("Livro devolvido com sucesso!");
     }
-
-
 
     // Adicione estes métodos na classe Biblioteca
 

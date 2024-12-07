@@ -7,8 +7,18 @@ public class Emprestimo {
 	private Livro livro;
 	private Date dataEmprestimo;
 	private Date dataDevolucao;
-	
+
 	public Emprestimo(Leitor leitor, Livro livro, Date dataEmprestimo, Date dataDevolucao) {
+		if (leitor == null) {
+			throw new IllegalArgumentException("Leitor não pode ser nulo");
+		}
+		if (livro == null) {
+			throw new IllegalArgumentException("Livro não pode ser nulo");
+		}
+		if (dataEmprestimo == null) {
+			throw new IllegalArgumentException("Data de empréstimo não pode ser nula");
+		}
+
 		this.leitor = leitor;
 		this.livro = livro;
 		this.dataEmprestimo = dataEmprestimo;

@@ -44,6 +44,15 @@ public class Usuario {
         return false;
     }
 
+    public static boolean loginExiste(String login) {
+        for (Usuario usuario : usuarios) {
+            if (usuario.getLogin().equals(login)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean isAdmin() {
         return this.isAdmin;
     }
