@@ -116,6 +116,7 @@ public class Main {
             Usuario novoUsuario = new Usuario(login, senha, true);
             Usuario.getUsuarios().add(novoUsuario);
             System.out.println("Administrador cadastrado com sucesso!");
+            usuarioLogado = login;
             menuAdmin();
         } else {
             String nome = MenuUtils.lerString("Nome: ");
@@ -128,11 +129,15 @@ public class Main {
             Usuario novoUsuario = new Usuario(login, senha, false, novoLeitor);
             Usuario.getUsuarios().add(novoUsuario);
             System.out.println("Leitor cadastrado com sucesso!");
+
+            // Define o usuário e leitor logados
+            usuarioLogado = login;
+            leitorlogado = novoLeitor;
+
             menuLeitor();
         }
         FileManager.salvarDados(biblioteca);
     }
-
     // ==================== Menus Principais ====================
 
     private static void menuAdmin() {
