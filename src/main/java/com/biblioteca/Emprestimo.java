@@ -40,6 +40,25 @@ public class Emprestimo {
 		this.dataDevolucao = dataDevolucao;
 	}
 
+	public String informaEmprestimo() {
+		StringBuilder info = new StringBuilder();
+		info.append("Código do Livro: ").append(livro.getCodigoIsbn()).append("\n");
+		info.append("Título: ").append(livro.getTitulo()).append("\n");
+		info.append("Leitor: ").append(leitor.getNome()).append("\n");
+		info.append("Email do Leitor: ").append(leitor.getEmail()).append("\n");
+		info.append("Código do Leitor: ").append(leitor.getCodigo()).append("\n");
+		info.append("Data do empréstimo: ").append(dataEmprestimo).append("\n");
+
+		if (dataDevolucao != null) {
+			info.append("Status: Devolvido\n");
+			info.append("Data de devolução: ").append(dataDevolucao).append("\n");
+		} else {
+			info.append("Status: Em andamento\n");
+		}
+
+		info.append("-----------------------------\n");
+		return info.toString();
+	}
 
 	@Override
 	public String toString() {

@@ -112,7 +112,8 @@ public class Main {
             System.out.println("Leitor cadastrado com sucesso!");
             FileManager.salvarDados(biblioteca);
             leitorlogado = novoLeitor;
-            menuLeitor();
+            usuarioLogado = login;  // Atualiza o usuário logado
+            menuLeitor();  // Passa o login como parâmetro
         }
     }
 
@@ -220,30 +221,34 @@ public class Main {
     }
     private static void menuLeitor() {
         while (true) {
-            System.out.println("\n=== Menu do Leitor ===");
+            System.out.println("=== Menu do Leitor ===");
             System.out.println("1. Consultar Livros Disponíveis");
-            System.out.println("2. Meus Empréstimos");
-            System.out.println("3. Realizar Empréstimo");
-            System.out.println("4. Devolver Livro");
-            System.out.println("5. Logout");
+            System.out.println("2. Pesquisar Livros");
+            System.out.println("3. Meus Empréstimos");
+            System.out.println("4. Realizar Empréstimo");
+            System.out.println("5. Devolver Livro");
+            System.out.println("6. Logout");
 
             int opcao = scanner.nextInt();
-            scanner.nextLine();
+            scanner.nextLine(); // Limpar o buffer
 
             switch (opcao) {
                 case 1:
                     biblioteca.listarLivrosDisponiveis();
                     break;
                 case 2:
-                    biblioteca.listarEmprestimosLeitor(leitorlogado);
+                    pesquisarLivros();
                     break;
                 case 3:
-                    realizarEmprestimo();
+                    biblioteca.listarEmprestimosLeitor(leitorlogado);
                     break;
                 case 4:
-                    realizarDevolucao();
+                    realizarEmprestimo();
                     break;
                 case 5:
+                    realizarDevolucao();
+                    break;
+                case 6:
                     return;
                 default:
                     System.out.println("Opção inválida!");
@@ -290,32 +295,48 @@ public class Main {
 
     private static void menuLivros() {
         while (true) {
-            System.out.println("\n=== Gerenciar Livros ===");
-            System.out.println("1. Adicionar Livro");
-            System.out.println("2. Listar Livros");
-            System.out.println("3. Buscar Livro");
-            System.out.println("4. Editar Livro");
-            System.out.println("5. Remover Livro");
+            System.out.println("\n=== Menu Livros ===");
+            System.out.println("1. Pesquisar Livros");
+            System.out.println("2. Listar Todos os Livros");
+            // Verifica se o usuário logado é admin
+            boolean isAdmin = Usuario.isAdmin(usuarioLogado);
+            if (isAdmin) {
+                System.out.println("3. Adicionar Livro");
+                System.out.println("4. Editar Livro");
+                System.out.println("5. Remover Livro");
+            }
             System.out.println("6. Voltar");
 
             int opcao = scanner.nextInt();
-            scanner.nextLine();
+            scanner.nextLine(); // Limpar o buffer
 
             switch (opcao) {
                 case 1:
-                    adicionarLivro();
+                    pesquisarLivros();
                     break;
                 case 2:
                     biblioteca.listarLivros();
                     break;
                 case 3:
-                    buscarLivro();
+                    if (isAdmin) {
+                        adicionarLivro();
+                    } else {
+                        System.out.println("Opção inválida!");
+                    }
                     break;
                 case 4:
-                    editarLivro();
+                    if (isAdmin) {
+                        editarLivro();
+                    } else {
+                        System.out.println("Opção inválida!");
+                    }
                     break;
                 case 5:
-                    removerLivro();
+                    if (isAdmin) {
+                        removerLivro();
+                    } else {
+                        System.out.println("Opção inválida!");
+                    }
                     break;
                 case 6:
                     return;
@@ -325,6 +346,39 @@ public class Main {
         }
     }
 
+    private static void pesquisarLivros() {
+        System.out.println("\n=== Pesquisar Livros ===");
+        System.out.println("Digite o termo de pesquisa (ISBN, título ou autor): ");
+        String termo = scanner.nextLine();
+
+        List<Livro> resultados = biblioteca.pesquisarLivros(termo);
+        biblioteca.exibirResultadosPesquisa(resultados);
+
+        if (!resultados.isEmpty() && leitorlogado != null) {
+            System.out.println("\nDeseja realizar um empréstimo? (S/N)");
+            String resposta = scanner.nextLine();
+
+            if (resposta.equalsIgnoreCase("S")) {
+                System.out.println("Digite o número do livro que deseja emprestar: ");
+                int numeroLivro = scanner.nextInt();
+                scanner.nextLine(); // Limpar o buffer
+
+                if (numeroLivro > 0 && numeroLivro <= resultados.size()) {
+                    Livro livroSelecionado = resultados.get(numeroLivro - 1);
+                    if (livroSelecionado.temCopiaDisponivel()) {
+                        // Se tem cópia disponível, tenta fazer o empréstimo
+                        biblioteca.emprestarLivro(leitorlogado, livroSelecionado.getCodigoIsbn());
+                    } else {
+                        System.out.println("Não há cópias disponíveis deste livro no momento.");
+                        System.out.println("Total de cópias: " + livroSelecionado.getCopiasTotal());
+                        System.out.println("Cópias disponíveis: " + livroSelecionado.getCopiasDisponiveis());
+                    }
+                } else {
+                    System.out.println("Número de livro inválido!");
+                }
+            }
+        }
+    }
     private static void adicionarCategoria() {
         System.out.println("Nome da categoria: ");
         String nome = scanner.nextLine();

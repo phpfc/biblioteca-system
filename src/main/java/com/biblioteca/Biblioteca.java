@@ -133,20 +133,31 @@ public class Biblioteca {
     }
 
     public void listarEmprestimos() {
+        System.out.println("=== Lista de Empréstimos ===");
         if (emprestimos.isEmpty()) {
-            System.out.println("Nenhum empréstimo registrado.");
+            System.out.println("Não há empréstimos registrados.");
             return;
         }
 
-        System.out.println("\n=== Empréstimos Registrados ===");
         for (Emprestimo emprestimo : emprestimos) {
-            if (emprestimo.getDataDevolucao() == null) {
-                System.out.println("Leitor: " + emprestimo.getLeitor().getNome());
-                System.out.println("Livro: " + emprestimo.getLivro().getTitulo());
-                System.out.println("Data do empréstimo: " + emprestimo.getDataEmprestimo());
-                System.out.println("Status: Em andamento");
-                System.out.println("-----------------------------");
+            System.out.print(emprestimo.informaEmprestimo());
+        }
+    }
+
+    // Para o menu do leitor, podemos ter um método específico
+    public void listarEmprestimosLeitor(Leitor leitor) {
+        System.out.println("=== Seus Empréstimos ===");
+        boolean temEmprestimo = false;
+
+        for (Emprestimo emprestimo : emprestimos) {
+            if (emprestimo.getLeitor().getCodigo().equals(leitor.getCodigo())) {
+                System.out.print(emprestimo.informaEmprestimo());
+                temEmprestimo = true;
             }
+        }
+
+        if (!temEmprestimo) {
+            System.out.println("Você não possui empréstimos.");
         }
     }
 
@@ -215,18 +226,52 @@ public class Biblioteca {
         System.out.println("Livro devolvido com sucesso!");
     }
 
-    public void listarEmprestimosLeitor(Leitor leitor) {
-        boolean encontrou = false;
-        System.out.println("\n=== Seus Empréstimos ===");
-        for (Emprestimo emp : emprestimos) {
-            if (emp.getLeitor().getCodigo().equals(leitor.getCodigo())) {
-                System.out.println(emp.toString());
-                encontrou = true;
+
+
+    // Adicione estes métodos na classe Biblioteca
+
+    public List<Livro> pesquisarLivros(String termo) {
+        List<Livro> resultados = new ArrayList<>();
+
+        // Se o termo estiver vazio, retorna lista vazia
+        if (termo == null || termo.trim().isEmpty()) {
+            return resultados;
+        }
+
+        termo = termo.toLowerCase().trim();
+
+        // Primeiro tenta buscar por código ISBN exato
+        for (Livro livro : livros) {
+            if (livro.getCodigoIsbn().toLowerCase().equals(termo)) {
+                resultados.add(livro);
+                return resultados; // Retorna imediatamente se encontrar por ISBN
             }
         }
-        if (!encontrou) {
-            System.out.println("Você não possui empréstimos registrados.");
+
+        // Se não encontrou por ISBN, busca por título ou autor
+        for (Livro livro : livros) {
+            if (livro.getTitulo().toLowerCase().contains(termo) ||
+                    livro.getAutor().toLowerCase().contains(termo)) {
+                resultados.add(livro);
+            }
         }
+
+        return resultados;
+    }
+
+    public void exibirResultadosPesquisa(List<Livro> resultados) {
+        if (resultados.isEmpty()) {
+            System.out.println("Nenhum livro encontrado.");
+            return;
+        }
+
+        System.out.println("\n=== Resultados da Pesquisa ===");
+        for (int i = 0; i < resultados.size(); i++) {
+            System.out.println("\nLivro #" + (i + 1));
+            System.out.println(resultados.get(i).informaLivro());
+        }
+
+        System.out.println("\nTotal de livros encontrados: " + resultados.size());
     }
 
     public void adicionarLivro(Livro livro) {

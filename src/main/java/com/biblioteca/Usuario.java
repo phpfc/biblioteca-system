@@ -33,6 +33,17 @@ public class Usuario {
         return false;
     }
 
+    public static boolean isAdmin(String login) {
+        if (login == null) return false;
+
+        for (Usuario usuario : usuarios) {
+            if (usuario.login.equals(login)) {
+                return usuario.isAdmin;
+            }
+        }
+        return false;
+    }
+
     public boolean isAdmin() {
         return this.isAdmin;
     }
