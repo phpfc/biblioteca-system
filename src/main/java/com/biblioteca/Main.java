@@ -52,12 +52,10 @@ public class Main {
     private static void menuLogin() {
         while (true) {
             System.out.println("\n=== Sistema de Biblioteca ===");
-            System.out.println("1. Login");
-            System.out.println("2. Realizar Cadastro");
-            System.out.println("3. Sair");
-
-            int opcao = scanner.nextInt();
-            scanner.nextLine();
+            int opcao = MenuUtils.lerOpcaoMenu(1, 3,
+                    "1. Login\n" +
+                            "2. Realizar Cadastro\n" +
+                            "3. Sair");
 
             switch (opcao) {
                 case 1:
@@ -70,85 +68,45 @@ public class Main {
                     System.out.println("Sistema encerrado.");
                     System.exit(0);
                     break;
-                default:
-                    System.out.println("Opção inválida!");
+                case -1: // This case won't be reached in the main menu, but keeping for consistency
+                    System.out.println("Você está no menu principal.");
+                    break;
             }
         }
     }
 
     // Em Main.java, atualize o método realizarCadastro:
     private static void realizarCadastro() {
-        String login, senha, nome, email;
+        String login = MenuUtils.lerString("Digite seu login: ");
+        if (login == null) return;
 
-        // Validação do login
-        do {
-            System.out.println("Digite seu login: ");
-            login = scanner.nextLine().trim();
-            if (!ValidationUtils.validarLogin(login)) {
-                System.out.println(ValidationUtils.getLoginErrorMessage());
-            } else if (Usuario.loginExiste(login)) {
-                System.out.println("Este login já está em uso. Escolha outro.");
-                login = null;
-            }
-        } while (login == null || !ValidationUtils.validarLogin(login));
+        String senha = MenuUtils.lerString("Digite sua senha: ");
+        if (senha == null) return;
 
-        // Validação da senha
-        do {
-            System.out.println("Digite sua senha: ");
-            senha = scanner.nextLine().trim();
-            if (!ValidationUtils.validarSenha(senha)) {
-                System.out.println(ValidationUtils.getSenhaErrorMessage());
-            }
-        } while (!ValidationUtils.validarSenha(senha));
+        Boolean isAdmin = MenuUtils.lerSimNao("Você é um administrador?");
+        if (isAdmin == null) return;
 
-        System.out.println("É administrador? (s/n): ");
-        String resposta = scanner.nextLine().trim().toLowerCase();
-        boolean isAdmin = resposta.equals("s");
-
-        if (!isAdmin) {
-            System.out.println("Cadastro de Leitor: ");
-
-            // Validação do nome
-            do {
-                System.out.println("Nome: ");
-                nome = scanner.nextLine().trim();
-                if (!ValidationUtils.validarNome(nome)) {
-                    System.out.println(ValidationUtils.getNomeErrorMessage());
-                }
-            } while (!ValidationUtils.validarNome(nome));
-
-            // Validação do email
-            do {
-                System.out.println("E-mail: ");
-                email = scanner.nextLine().trim();
-                if (!ValidationUtils.validarEmail(email)) {
-                    System.out.println(ValidationUtils.getEmailErrorMessage());
-                }
-            } while (!ValidationUtils.validarEmail(email));
-
-            Leitor novoLeitor = new Leitor(nome, email);
-            Usuario novoUsuario = new Usuario(login, senha, false, novoLeitor);
-            biblioteca.adicionarLeitor(novoLeitor);
-            Usuario.getUsuarios().add(novoUsuario);
-            System.out.println("Leitor cadastrado com sucesso!");
-            FileManager.salvarDados(biblioteca);
-
-            // Define o leitor logado antes de chamar o menu
-            leitorlogado = novoLeitor;
-            usuarioLogado = login;
-
-            menuLeitor();
-        } else {
+        if (isAdmin) {
             Usuario novoUsuario = new Usuario(login, senha, true);
             Usuario.getUsuarios().add(novoUsuario);
             System.out.println("Administrador cadastrado com sucesso!");
-            FileManager.salvarDados(biblioteca);
-
-            usuarioLogado = login;
             menuAdmin();
-        }
-    }
+        } else {
+            String nome = MenuUtils.lerString("Nome: ");
+            if (nome == null) return;
 
+            String email = MenuUtils.lerString("E-mail: ");
+            if (email == null) return;
+
+            Leitor novoLeitor = new Leitor(nome, email);
+            Usuario novoUsuario = new Usuario(login, senha, false, novoLeitor);
+            Usuario.getUsuarios().add(novoUsuario);
+            System.out.println("Leitor cadastrado com sucesso!");
+            menuLeitor();
+        }
+
+        FileManager.salvarDados(biblioteca);
+    }
     // Em Main.java, atualize o método realizarLogin:
     private static void realizarLogin() {
         System.out.println("Login: ");
@@ -190,17 +148,15 @@ public class Main {
 
     private static void menuAdmin() {
         while (true) {
-            System.out.println("\n=== Menu Administrador ===");
-            System.out.println("1. Gerenciar Categorias");
-            System.out.println("2. Gerenciar Livros");
-            System.out.println("3. Listar Empréstimos");
-            System.out.println("4. Mostrar Banco de Dados");
-            System.out.println("5. Carregar Dados Exemplo");
-            System.out.println("6. Limpar Banco de Dados");
-            System.out.println("7. Logout");
-
-            int opcao = scanner.nextInt();
-            scanner.nextLine();
+            int opcao = MenuUtils.lerOpcaoMenu(1, 7,
+                    "=== Menu Administrador ===\n" +
+                            "1. Gerenciar Categorias\n" +
+                            "2. Gerenciar Livros\n" +
+                            "3. Listar Empréstimos\n" +
+                            "4. Mostrar Banco de Dados\n" +
+                            "5. Carregar Dados Exemplo\n" +
+                            "6. Limpar Banco de Dados\n" +
+                            "7. Logout");
 
             switch (opcao) {
                 case 1:
@@ -223,14 +179,12 @@ public class Main {
                     biblioteca = new Biblioteca();
                     break;
                 case 7:
+                case -1:
                     usuarioLogado = null;
                     return;
-                default:
-                    System.out.println("Opção inválida!");
             }
         }
     }
-
     private static void carregarDadosExemplo() {
         System.out.println("\n=== Carregando Dados Exemplo ===");
 
@@ -259,18 +213,18 @@ public class Main {
         FileManager.salvarDados(biblioteca);
         System.out.println("Dados exemplo carregados com sucesso!");
     }
+
+
     private static void menuLeitor() {
         while (true) {
-            System.out.println("=== Menu do Leitor ===");
-            System.out.println("1. Consultar Livros Disponíveis");
-            System.out.println("2. Pesquisar Livros");
-            System.out.println("3. Meus Empréstimos");
-            System.out.println("4. Realizar Empréstimo");
-            System.out.println("5. Devolver Livro");
-            System.out.println("6. Logout");
-
-            int opcao = scanner.nextInt();
-            scanner.nextLine(); // Limpar o buffer
+            int opcao = MenuUtils.lerOpcaoMenu(1, 6,
+                    "=== Menu do Leitor ===\n" +
+                            "1. Consultar Livros Disponíveis\n" +
+                            "2. Pesquisar Livros\n" +
+                            "3. Meus Empréstimos\n" +
+                            "4. Realizar Empréstimo\n" +
+                            "5. Devolver Livro\n" +
+                            "6. Logout");
 
             switch (opcao) {
                 case 1:
@@ -280,7 +234,7 @@ public class Main {
                     pesquisarLivros();
                     break;
                 case 3:
-                    menuConsultaEmprestimosLeitor(); // Alterado para chamar o menu de consulta
+                    menuConsultaEmprestimosLeitor();
                     break;
                 case 4:
                     realizarEmprestimo();
@@ -289,24 +243,21 @@ public class Main {
                     realizarDevolucao();
                     break;
                 case 6:
+                case -1:
                     return;
-                default:
-                    System.out.println("Opção inválida!");
             }
         }
     }
+
     private static void menuCategorias() {
         while (true) {
-            System.out.println("\n=== Gerenciar Categorias ===");
-            System.out.println("1. Adicionar Categoria");
-            System.out.println("2. Listar Categorias");
-            System.out.println("3. Buscar Categoria");
-            System.out.println("4. Editar Categoria");
-            System.out.println("5. Remover Categoria");
-            System.out.println("6. Voltar");
-
-            int opcao = scanner.nextInt();
-            scanner.nextLine();
+            int opcao = MenuUtils.lerOpcaoMenu(1, 5,
+                    "=== Gerenciar Categorias ===\n" +
+                            "1. Adicionar Categoria\n" +
+                            "2. Listar Categorias\n" +
+                            "3. Buscar Categoria\n" +
+                            "4. Editar Categoria\n" +
+                            "5. Remover Categoria");
 
             switch (opcao) {
                 case 1:
@@ -324,10 +275,8 @@ public class Main {
                 case 5:
                     removerCategoria();
                     break;
-                case 6:
+                case -1:
                     return;
-                default:
-                    System.out.println("Opção inválida!");
             }
         }
     }
@@ -371,14 +320,12 @@ public class Main {
     }
     private static void menuConsultaEmprestimos() {
         while (true) {
-            System.out.println("\n=== Consulta de Empréstimos ===");
-            System.out.println("1. Consultar por código do livro");
-            System.out.println("2. Consultar por nome do livro");
-            System.out.println("3. Consultar por intervalo de datas");
-            System.out.println("4. Voltar");
-
-            int opcao = scanner.nextInt();
-            scanner.nextLine();
+            int opcao = MenuUtils.lerOpcaoMenu(1, 4,
+                    "=== Consulta de Empréstimos ===\n" +
+                            "1. Consultar por código do livro\n" +
+                            "2. Consultar por nome do livro\n" +
+                            "3. Consultar por intervalo de datas\n" +
+                            "4. Voltar");
 
             switch (opcao) {
                 case 1:
@@ -391,24 +338,20 @@ public class Main {
                     consultarPorIntervaloData();
                     break;
                 case 4:
+                case -1:
                     return;
-                default:
-                    System.out.println("Opção inválida!");
             }
         }
     }
-
     private static void menuConsultaEmprestimosLeitor() {
         while (true) {
-            System.out.println("\n=== Consulta de Empréstimos ===");
-            System.out.println("1. Todos os Empréstimos");
-            System.out.println("2. Buscar por Período");
-            System.out.println("3. Buscar por Termo (Título/Autor)");
-            System.out.println("4. Buscar por Código ISBN");
-            System.out.println("5. Voltar");
-
-            int opcao = scanner.nextInt();
-            scanner.nextLine();
+            int opcao = MenuUtils.lerOpcaoMenu(1, 5,
+                    "=== Consulta de Empréstimos ===\n" +
+                            "1. Todos os Empréstimos\n" +
+                            "2. Buscar por Período\n" +
+                            "3. Buscar por Termo (Título/Autor)\n" +
+                            "4. Buscar por Código ISBN\n" +
+                            "5. Voltar");
 
             switch (opcao) {
                 case 1:
@@ -424,9 +367,8 @@ public class Main {
                     consultarEmprestimosPorCodigo();
                     break;
                 case 5:
+                case -1:
                     return;
-                default:
-                    System.out.println("Opção inválida!");
             }
         }
     }
@@ -529,20 +471,21 @@ public class Main {
 
     private static void menuLivros() {
         while (true) {
-            System.out.println("\n=== Menu Livros ===");
-            System.out.println("1. Pesquisar Livros");
-            System.out.println("2. Listar Todos os Livros");
-            // Verifica se o usuário logado é admin
-            boolean isAdmin = Usuario.isAdmin(usuarioLogado);
-            if (isAdmin) {
-                System.out.println("3. Adicionar Livro");
-                System.out.println("4. Editar Livro");
-                System.out.println("5. Remover Livro");
-            }
-            System.out.println("6. Voltar");
+            String menuOptions = "=== Menu Livros ===\n" +
+                    "1. Pesquisar Livros\n" +
+                    "2. Listar Todos os Livros\n";
 
-            int opcao = scanner.nextInt();
-            scanner.nextLine(); // Limpar o buffer
+            boolean isAdmin = Usuario.isAdmin(usuarioLogado);
+            int maxOption = 2;
+
+            if (isAdmin) {
+                menuOptions += "3. Adicionar Livro\n" +
+                        "4. Editar Livro\n" +
+                        "5. Remover Livro\n";
+                maxOption = 5;
+            }
+
+            int opcao = MenuUtils.lerOpcaoMenu(1, maxOption, menuOptions);
 
             switch (opcao) {
                 case 1:
@@ -552,34 +495,19 @@ public class Main {
                     biblioteca.listarLivros();
                     break;
                 case 3:
-                    if (isAdmin) {
-                        adicionarLivro();
-                    } else {
-                        System.out.println("Opção inválida!");
-                    }
+                    if (isAdmin) adicionarLivro();
                     break;
                 case 4:
-                    if (isAdmin) {
-                        editarLivro();
-                    } else {
-                        System.out.println("Opção inválida!");
-                    }
+                    if (isAdmin) editarLivro();
                     break;
                 case 5:
-                    if (isAdmin) {
-                        removerLivro();
-                    } else {
-                        System.out.println("Opção inválida!");
-                    }
+                    if (isAdmin) removerLivro();
                     break;
-                case 6:
+                case -1:
                     return;
-                default:
-                    System.out.println("Opção inválida!");
             }
         }
     }
-
     private static void pesquisarLivros() {
         System.out.println("\n=== Pesquisar Livros ===");
         System.out.println("Digite o termo de pesquisa (ISBN, título ou autor): ");
@@ -599,43 +527,38 @@ public class Main {
     }
 
     private static void realizarEmprestimo() {
-        System.out.println("\n=== Realizar Empréstimo ===");
-        System.out.println("1. Ver todos os livros disponíveis");
-        System.out.println("2. Pesquisar livros específicos");
-        System.out.print("Escolha uma opção: ");
-
-        int opcao = scanner.nextInt();
-        scanner.nextLine(); // Limpar buffer
-
-        List<Livro> livrosDisponiveis;
+        int opcao = MenuUtils.lerOpcaoMenu(1, 2,
+                "=== Realizar Empréstimo ===\n" +
+                        "1. Ver todos os livros disponíveis\n" +
+                        "2. Pesquisar livros específicos");
 
         switch (opcao) {
             case 1:
                 System.out.println("\n=== Livros Disponíveis ===");
                 biblioteca.listarLivrosDisponiveis();
-                System.out.println("\nDigite o código ISBN do livro que deseja emprestar: ");
-                String codigoLivro = scanner.nextLine();
-                biblioteca.emprestarLivro(leitorlogado, codigoLivro);
-                break;
-
-            case 2:
-                System.out.println("\nDigite o termo para pesquisa (título, autor ou ISBN): ");
-                String termo = scanner.nextLine();
-                List<Livro> resultados = biblioteca.pesquisarLivros(termo);
-
-                if (!resultados.isEmpty()) {
-                    biblioteca.exibirResultadosPesquisa(resultados);
-                    realizarEmprestimoPorIndice(resultados);
-                } else {
-                    System.out.println("Nenhum livro encontrado com esse termo.");
+                String codigoLivro = MenuUtils.lerString("Digite o código ISBN do livro que deseja emprestar: ");
+                if (codigoLivro != null) {
+                    biblioteca.emprestarLivro(leitorlogado, codigoLivro);
                 }
                 break;
 
-            default:
-                System.out.println("Opção inválida!");
+            case 2:
+                String termo = MenuUtils.lerString("Digite o termo para pesquisa (título, autor ou ISBN): ");
+                if (termo != null) {
+                    List<Livro> resultados = biblioteca.pesquisarLivros(termo);
+                    if (!resultados.isEmpty()) {
+                        biblioteca.exibirResultadosPesquisa(resultados);
+                        realizarEmprestimoPorIndice(resultados);
+                    } else {
+                        System.out.println("Nenhum livro encontrado com esse termo.");
+                    }
+                }
+                break;
+
+            case -1:
+                return;
         }
     }
-
     private static void realizarEmprestimoPorIndice(List<Livro> livros) {
         System.out.println("\nDigite o número (#) do livro que deseja emprestar: ");
         try {
