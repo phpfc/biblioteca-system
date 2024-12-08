@@ -4,18 +4,20 @@ public class Leitor {
 	private String codigo;
 	private String nome;
 	private String email;
-	private static int autoincremento = 1;
+	private static long autoincremento = System.currentTimeMillis();
+
 	public Leitor(String nome, String email) {
 		this.nome = nome;
 		this.email = email;
 		this.codigo = gerarCodigo();
 	}
+
 	public String getCodigo() {
 		return codigo;
 	}
 	private String gerarCodigo() {
-		return String.valueOf(autoincremento++);
- 	}
+		return "L" + (autoincremento++);
+	}
 	public String getNome() {
 		return nome;
 	}

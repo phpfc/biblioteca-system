@@ -167,16 +167,15 @@ public class Biblioteca {
         boolean temEmprestimo = false;
 
         for (Emprestimo emprestimo : emprestimos) {
-            // Verifica se o empréstimo e seu leitor são válidos
+            // Verifica se o empréstimo é válido e pertence ao leitor correto
+            // Compara tanto o código quanto o email para garantir que é o leitor correto
             if (emprestimo != null &&
                     emprestimo.getLeitor() != null &&
-                    emprestimo.getLeitor().getCodigo().equals(leitor.getCodigo())) {
+                    emprestimo.getLeitor().getCodigo().equals(leitor.getCodigo()) &&
+                    emprestimo.getLeitor().getEmail().equals(leitor.getEmail())) {
 
                 System.out.println("Código do Livro: " + emprestimo.getLivro().getCodigoIsbn());
                 System.out.println("Título: " + emprestimo.getLivro().getTitulo());
-                System.out.println("Leitor: " + emprestimo.getLeitor().getNome());
-                System.out.println("Email do Leitor: " + emprestimo.getLeitor().getEmail());
-                System.out.println("Código do Leitor: " + emprestimo.getLeitor().getCodigo());
                 System.out.println("Data do empréstimo: " + emprestimo.getDataEmprestimo());
 
                 if (emprestimo.getDataDevolucao() != null) {
@@ -193,6 +192,43 @@ public class Biblioteca {
         if (!temEmprestimo) {
             System.out.println("Você não possui empréstimos.");
         }
+    }
+
+    // Atualiza também os métodos de consulta para usar a mesma lógica de filtragem
+    public List<Emprestimo> consultarEmprestimosLeitorPorPeriodo(Leitor leitor, Date inicio, Date fim) {
+        if (leitor == null) return new ArrayList<>();
+
+        return emprestimos.stream()
+                .filter(emp -> emp.getLeitor() != null &&
+                        emp.getLeitor().getCodigo().equals(leitor.getCodigo()) &&
+                        emp.getLeitor().getEmail().equals(leitor.getEmail()) &&
+                        emp.getDataEmprestimo().after(inicio) &&
+                        emp.getDataEmprestimo().before(fim))
+                .collect(Collectors.toList());
+    }
+
+    public List<Emprestimo> consultarEmprestimosLeitorPorTermo(Leitor leitor, String termoBusca) {
+        if (leitor == null || termoBusca == null) return new ArrayList<>();
+
+        final String termoFinal = termoBusca.toLowerCase();
+        return emprestimos.stream()
+                .filter(emp -> emp.getLeitor() != null &&
+                        emp.getLeitor().getCodigo().equals(leitor.getCodigo()) &&
+                        emp.getLeitor().getEmail().equals(leitor.getEmail()) &&
+                        (emp.getLivro().getTitulo().toLowerCase().contains(termoFinal) ||
+                                emp.getLivro().getAutor().toLowerCase().contains(termoFinal)))
+                .collect(Collectors.toList());
+    }
+
+    public List<Emprestimo> consultarEmprestimosLeitorPorCodigo(Leitor leitor, String codigo) {
+        if (leitor == null || codigo == null) return new ArrayList<>();
+
+        return emprestimos.stream()
+                .filter(emp -> emp.getLeitor() != null &&
+                        emp.getLeitor().getCodigo().equals(leitor.getCodigo()) &&
+                        emp.getLeitor().getEmail().equals(leitor.getEmail()) &&
+                        emp.getLivro().getCodigoIsbn().equals(codigo))
+                .collect(Collectors.toList());
     }
 
     public void listarLivrosDisponiveis() {
@@ -245,40 +281,15 @@ public class Biblioteca {
         System.out.println("Empréstimo realizado com sucesso!");
     }
 
-
-    public List<Emprestimo> consultarEmprestimosLeitorPorPeriodo(Leitor leitor, Date inicio, Date fim) {
-        if (leitor == null) return new ArrayList<>();
-
-        return emprestimos.stream()
-                .filter(emp -> emp.getLeitor() != null &&
-                        emp.getLeitor().getCodigo().equals(leitor.getCodigo()) &&
-                        emp.getDataEmprestimo().after(inicio) &&
-                        emp.getDataEmprestimo().before(fim))
-                .collect(Collectors.toList());
+    public List<Emprestimo> consultarEmprestimosDoLeitor(String codigoLeitor) {
+        List<Emprestimo> emprestimosDoLeitor = new ArrayList<>();
+        for (Emprestimo emprestimo : emprestimos) {
+            if (emprestimo.getLeitor().getCodigo().equals(codigoLeitor)) {
+                emprestimosDoLeitor.add(emprestimo);
+            }
+        }
+        return emprestimosDoLeitor;
     }
-
-    public List<Emprestimo> consultarEmprestimosLeitorPorTermo(Leitor leitor, String termoBusca) {
-        if (leitor == null || termoBusca == null) return new ArrayList<>();
-
-        final String termoFinal = termoBusca.toLowerCase();
-        return emprestimos.stream()
-                .filter(emp -> emp.getLeitor() != null &&
-                        emp.getLeitor().getCodigo().equals(leitor.getCodigo()) &&
-                        (emp.getLivro().getTitulo().toLowerCase().contains(termoFinal) ||
-                                emp.getLivro().getAutor().toLowerCase().contains(termoFinal)))
-                .collect(Collectors.toList());
-    }
-
-    public List<Emprestimo> consultarEmprestimosLeitorPorCodigo(Leitor leitor, String codigo) {
-        if (leitor == null || codigo == null) return new ArrayList<>();
-
-        return emprestimos.stream()
-                .filter(emp -> emp.getLeitor() != null &&
-                        emp.getLeitor().getCodigo().equals(leitor.getCodigo()) &&
-                        emp.getLivro().getCodigoIsbn().equals(codigo))
-                .collect(Collectors.toList());
-    }
-
     public void devolverLivro(Leitor leitor, String codigoLivro) {
         Emprestimo emprestimoAtivo = null;
         for (Emprestimo emp : emprestimos) {
