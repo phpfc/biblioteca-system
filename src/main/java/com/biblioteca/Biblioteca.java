@@ -281,15 +281,7 @@ public class Biblioteca {
         System.out.println("Empréstimo realizado com sucesso!");
     }
 
-    public List<Emprestimo> consultarEmprestimosDoLeitor(String codigoLeitor) {
-        List<Emprestimo> emprestimosDoLeitor = new ArrayList<>();
-        for (Emprestimo emprestimo : emprestimos) {
-            if (emprestimo.getLeitor().getCodigo().equals(codigoLeitor)) {
-                emprestimosDoLeitor.add(emprestimo);
-            }
-        }
-        return emprestimosDoLeitor;
-    }
+
     public void devolverLivro(Leitor leitor, String codigoLivro) {
         Emprestimo emprestimoAtivo = null;
         for (Emprestimo emp : emprestimos) {
@@ -363,10 +355,6 @@ public class Biblioteca {
         FileManager.salvarDados(this);
     }
 
-    public void adicionarLeitor(Leitor leitor) {
-        leitores.add(leitor);
-    }
-
     public void adicionarCategorias(Categoria categoria) {
         categorias.add(categoria);
     }
@@ -437,16 +425,6 @@ public class Biblioteca {
         return resultados;
     }
 
-    public List<Emprestimo> consultarEmprestimosPorLeitor(Leitor leitor) {
-        List<Emprestimo> resultados = new ArrayList<>();
-        for (Emprestimo emprestimo : emprestimos) {
-            if (emprestimo.getLeitor().getCodigo().equals(leitor.getCodigo())) {
-                resultados.add(emprestimo);
-            }
-        }
-        return resultados;
-    }
-
     public List<Emprestimo> consultarEmprestimosPorLivro(String codigoLivro) {
         List<Emprestimo> resultados = new ArrayList<>();
         for (Emprestimo emprestimo : emprestimos) {
@@ -457,14 +435,79 @@ public class Biblioteca {
         return resultados;
     }
 
-    public boolean alterarDataDevolucao(String codigoLivro, Date novaData) {
-        for (Emprestimo emprestimo : emprestimos) {
-            if (emprestimo.getLivro().getCodigoIsbn().equals(codigoLivro) &&
-                    emprestimo.getDataDevolucao() == null) {
-                emprestimo.setDataDevolucao(novaData);
-                return true;
+
+        // Novo método para listar empréstimos de um livro específico
+    public void listarEmprestimosLivro(String isbn) {
+        if (isbn == null || isbn.trim().isEmpty()) {
+            System.out.println("ISBN inválido!");
+            return;
+        }
+
+        Livro livro = buscarPorIsbn(isbn);
+        if (livro == null) {
+            System.out.println("Livro não encontrado!");
+            return;
+        }
+
+        System.out.println("\n=== Empréstimos do Livro ===");
+        System.out.println("Título: " + livro.getTitulo());
+        System.out.println("ISBN: " + livro.getCodigoIsbn());
+        System.out.println("Total de cópias: " + livro.getCopiasTotal());
+        System.out.println("Cópias disponíveis: " + livro.getCopiasDisponiveis());
+        System.out.println("\nEmpréstimos Ativos:");
+
+        boolean temEmprestimo = false;
+        for (Emprestimo emp : emprestimos) {
+            if (emp != null && emp.getLivro().getCodigoIsbn().equals(isbn)) {
+                System.out.println("\nLeitor: " + emp.getLeitor().getNome());
+                System.out.println("Email: " + emp.getLeitor().getEmail());
+                System.out.println("Data do empréstimo: " + emp.getDataEmprestimo());
+                if (emp.getDataDevolucao() != null) {
+                    System.out.println("Status: Devolvido em " + emp.getDataDevolucao());
+                } else {
+                    System.out.println("Status: Em andamento");
+                }
+                System.out.println("-----------------------------");
+                temEmprestimo = true;
             }
         }
-        return false;
+
+        if (!temEmprestimo) {
+            System.out.println("Nenhum empréstimo registrado para este livro.");
+        }
+    }
+
+    // Método para marcar um livro como devolvido
+    public void marcarComoDevolvidoAdmin(String isbn, String emailLeitor) {
+        for (Emprestimo emp : emprestimos) {
+            if (emp != null &&
+                    emp.getLivro().getCodigoIsbn().equals(isbn) &&
+                    emp.getLeitor().getEmail().equals(emailLeitor) &&
+                    emp.getDataDevolucao() == null) {
+
+                emp.setDataDevolucao(new Date());
+                emp.getLivro().devolverCopia();
+                FileManager.salvarDados(this);
+                System.out.println("Livro marcado como devolvido com sucesso!");
+                return;
+            }
+        }
+        System.out.println("Empréstimo não encontrado ou já devolvido!");
+    }
+
+    // Método para alterar a data de devolução de um empréstimo
+    public void alterarDataDevolucaoAdmin(String isbn, String emailLeitor, Date novaData) {
+        for (Emprestimo emp : emprestimos) {
+            if (emp != null &&
+                    emp.getLivro().getCodigoIsbn().equals(isbn) &&
+                    emp.getLeitor().getEmail().equals(emailLeitor)) {
+
+                emp.setDataDevolucao(novaData);
+                FileManager.salvarDados(this);
+                System.out.println("Data de devolução alterada com sucesso!");
+                return;
+            }
+        }
+        System.out.println("Empréstimo não encontrado!");
     }
 }

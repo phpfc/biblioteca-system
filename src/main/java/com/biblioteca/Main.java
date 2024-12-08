@@ -148,15 +148,16 @@ public class Main {
 
     private static void menuAdmin() {
         while (true) {
-            int opcao = MenuUtils.lerOpcaoMenu(1, 7,
+            int opcao = MenuUtils.lerOpcaoMenu(1, 8,
                     "=== Menu Administrador ===\n" +
                             "1. Gerenciar Categorias\n" +
                             "2. Gerenciar Livros\n" +
-                            "3. Listar Empréstimos\n" +
-                            "4. Mostrar Banco de Dados\n" +
-                            "5. Carregar Dados Exemplo\n" +
-                            "6. Limpar Banco de Dados\n" +
-                            "7. Logout");
+                            "3. Gerenciar Empréstimos\n" +
+                            "4. Listar Empréstimos\n" +
+                            "5. Mostrar Banco de Dados\n" +
+                            "6. Carregar Dados Exemplo\n" +
+                            "7. Limpar Banco de Dados\n" +
+                            "8. Logout");
 
             switch (opcao) {
                 case 1:
@@ -166,23 +167,91 @@ public class Main {
                     menuLivros();
                     break;
                 case 3:
-                    biblioteca.listarEmprestimos();
+                    menuGerenciarEmprestimos();
                     break;
                 case 4:
-                    mostrarConteudoBanco();
+                    biblioteca.listarEmprestimos();
                     break;
                 case 5:
-                    carregarDadosExemplo();
+                    mostrarConteudoBanco();
                     break;
                 case 6:
+                    carregarDadosExemplo();
+                    break;
+                case 7:
                     limparBanco();
                     biblioteca = new Biblioteca();
                     break;
-                case 7:
+                case 8:
                 case -1:
                     usuarioLogado = null;
                     return;
+                default:
+                    System.out.println("Opção inválida!");
             }
+        }
+    }
+    private static void menuGerenciarEmprestimos() {
+        while (true) {
+            int opcao = MenuUtils.lerOpcaoMenu(1, 4,
+                    "=== Gerenciar Empréstimos ===\n" +
+                            "1. Consultar Empréstimos por Livro\n" +
+                            "2. Marcar Livro como Devolvido\n" +
+                            "3. Alterar Data de Devolução\n" +
+                            "4. Voltar");
+
+            switch (opcao) {
+                case 1:
+                    consultarEmprestimosPorLivro();
+                    break;
+                case 2:
+                    marcarLivroDevolvido();
+                    break;
+                case 3:
+                    alterarDataDevolucao();
+                    break;
+                case 4:
+                case -1:
+                    return;
+            }
+        }
+    }
+
+    private static void consultarEmprestimosPorLivro() {
+        System.out.println("\n=== Consultar Empréstimos por Livro ===");
+        System.out.println("Digite o ISBN do livro: ");
+        String isbn = scanner.nextLine();
+        biblioteca.listarEmprestimosLivro(isbn);
+    }
+
+    private static void marcarLivroDevolvido() {
+        System.out.println("\n=== Marcar Livro como Devolvido ===");
+        System.out.println("Digite o ISBN do livro: ");
+        String isbn = scanner.nextLine();
+
+        System.out.println("Digite o email do leitor: ");
+        String emailLeitor = scanner.nextLine();
+
+        biblioteca.marcarComoDevolvidoAdmin(isbn, emailLeitor);
+    }
+
+    private static void alterarDataDevolucao() {
+        System.out.println("\n=== Alterar Data de Devolução ===");
+        System.out.println("Digite o ISBN do livro: ");
+        String isbn = scanner.nextLine();
+
+        System.out.println("Digite o email do leitor: ");
+        String emailLeitor = scanner.nextLine();
+
+        System.out.println("Digite a nova data de devolução (dd/MM/yyyy): ");
+        String dataStr = scanner.nextLine();
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            Date novaData = sdf.parse(dataStr);
+            biblioteca.alterarDataDevolucaoAdmin(isbn, emailLeitor, novaData);
+        } catch (ParseException e) {
+            System.out.println("Formato de data inválido! Use dd/MM/yyyy");
         }
     }
     private static void carregarDadosExemplo() {
@@ -281,69 +350,7 @@ public class Main {
         }
     }
 
-    private static void menuEmprestimos() {
-        while (true) {
-            System.out.println("\n=== Gerenciar Empréstimos ===");
-            System.out.println("1. Listar Livros Disponiveis");
-            System.out.println("2. Retirar Livro");
-            System.out.println("3. Devolver Livro");
-            System.out.println("4. Consultar Empréstimos");  // Nova opção
-            System.out.println("5. Voltar");
-
-            int opcao = scanner.nextInt();
-            scanner.nextLine();
-
-            switch (opcao) {
-                case 1:
-                    biblioteca.listarEmprestimos();
-                    break;
-                case 2:
-                    biblioteca.listarLivrosDisponiveis();
-                    System.out.println("Digite o código do livro para retirar: ");
-                    String codigoLivro = scanner.nextLine();
-                    biblioteca.emprestarLivro(leitorlogado, codigoLivro);
-                    break;
-                case 3:
-                    System.out.println("Digite o código do livro para devolver: ");
-                    String codigoDevolucao = scanner.nextLine();
-                    biblioteca.devolverLivro(leitorlogado, codigoDevolucao);
-                    break;
-                case 4:
-                    menuConsultaEmprestimos();  // Novo método
-                    break;
-                case 5:
-                    return;
-                default:
-                    System.out.println("Opção inválida!");
-            }
-        }
-    }
-    private static void menuConsultaEmprestimos() {
-        while (true) {
-            int opcao = MenuUtils.lerOpcaoMenu(1, 4,
-                    "=== Consulta de Empréstimos ===\n" +
-                            "1. Consultar por código do livro\n" +
-                            "2. Consultar por nome do livro\n" +
-                            "3. Consultar por intervalo de datas\n" +
-                            "4. Voltar");
-
-            switch (opcao) {
-                case 1:
-                    consultarPorCodigoLivro();
-                    break;
-                case 2:
-                    consultarPorNomeLivro();
-                    break;
-                case 3:
-                    consultarPorIntervaloData();
-                    break;
-                case 4:
-                case -1:
-                    return;
-            }
-        }
-    }
-    private static void menuConsultaEmprestimosLeitor() {
+   private static void menuConsultaEmprestimosLeitor() {
         while (true) {
             int opcao = MenuUtils.lerOpcaoMenu(1, 5,
                     "=== Consulta de Empréstimos ===\n" +
