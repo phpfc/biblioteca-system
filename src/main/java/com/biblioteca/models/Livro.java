@@ -1,4 +1,4 @@
-package com.biblioteca;
+package com.biblioteca.models;
 
 public class Livro {
     private String titulo;
@@ -17,40 +17,29 @@ public class Livro {
         this.categoria = categoria;
     }
 
-    public String informaLivro() {
-        return "Código: " + codigoIsbn +
-                "\nTítulo: " + titulo +
-                "\nAutor: " + autor +
-                "\nCópias disponíveis: " + copiasDisponiveis + "/" + copiasTotal +
-                "\nCategoria: " + (categoria != null ? categoria.getNome() : "Nenhuma")
-                + "\n";
-    }
-
-    public boolean temCopiaDisponivel() {
-        return copiasDisponiveis > 0;
-    }
-
-    public void emprestarCopia() {
-        if (copiasDisponiveis > 0) {
-            copiasDisponiveis--;
-        }
-    }
-
-    public void devolverCopia() {
-        if (copiasDisponiveis < copiasTotal) {
-            copiasDisponiveis++;
-        }
-    }
-
+    // Getters e Setters
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
     public String getAutor() { return autor; }
     public void setAutor(String autor) { this.autor = autor; }
     public String getCodigoIsbn() { return codigoIsbn; }
     public int getCopiasTotal() { return copiasTotal; }
-    public void setCopiasTotal(int copias) { this.copiasTotal = copias; }
+    public void setCopiasTotal(int copiasTotal) { this.copiasTotal = copiasTotal; }
     public int getCopiasDisponiveis() { return copiasDisponiveis; }
-    public void setCopiasDisponiveis(int copias) { this.copiasDisponiveis = copias; }
+    public void setCopiasDisponiveis(int copiasDisponiveis) { this.copiasDisponiveis = copiasDisponiveis; }
     public Categoria getCategoria() { return categoria; }
     public void setCategoria(Categoria categoria) { this.categoria = categoria; }
+
+    public boolean temCopiaDisponivel() {
+        return copiasDisponiveis > 0;
+    }
+
+    public String informaLivro() {
+        return "Título: " + titulo +
+                "\nAutor: " + autor +
+                "\nISBN: " + codigoIsbn +
+                "\nCópias Disponíveis: " + copiasDisponiveis +
+                "\nTotal de Cópias: " + copiasTotal +
+                "\nCategoria: " + (categoria != null ? categoria.getNome() : "Não categorizado");
+    }
 }
