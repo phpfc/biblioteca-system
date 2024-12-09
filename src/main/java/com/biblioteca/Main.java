@@ -1,6 +1,7 @@
 package com.biblioteca;
 
 import com.biblioteca.models.Biblioteca;
+import com.biblioteca.models.SistemaBibliotecas;
 import com.biblioteca.models.Usuario;
 import com.biblioteca.controllers.MenuController;
 import com.biblioteca.utils.FileManager;
@@ -10,14 +11,17 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        Biblioteca biblioteca = new Biblioteca();
-        FileManager.carregarDados(biblioteca);
+        SistemaBibliotecas sistema = SistemaBibliotecas.getInstance();
 
-        if (precisaCriarAdmin()) {
-            criarPrimeiroAdmin(biblioteca);
+        if (sistema.getBibliotecas().isEmpty()) {
+            sistema.adicionarBiblioteca("Biblioteca Central", "Rua Principal, 123");
         }
 
-        MenuController menuController = new MenuController(biblioteca);
+        if (precisaCriarAdmin()) {
+            criarPrimeiroAdmin(sistema); // Passando o sistema como parâmetro
+        }
+
+        MenuController menuController = new MenuController(sistema);
         menuController.menuLogin();
     }
 
@@ -25,7 +29,7 @@ public class Main {
         return Usuario.getUsuarios() == null || Usuario.getUsuarios().isEmpty();
     }
 
-    private static void criarPrimeiroAdmin(Biblioteca biblioteca) {
+    private static void criarPrimeiroAdmin(SistemaBibliotecas sistema) {
         System.out.println("\n=== Primeira Execução - Criação do Administrador ===");
         System.out.println("Para começar, vamos criar o usuário administrador.");
 
@@ -40,7 +44,7 @@ public class Main {
         usuarios.add(admin);
         Usuario.setUsuarios(usuarios);
 
-        FileManager.salvarDados(biblioteca);
+        FileManager.salvarDados(sistema);
         System.out.println("Administrador criado com sucesso!");
     }
 }

@@ -3,15 +3,18 @@ package com.biblioteca.controllers;
 import com.biblioteca.models.Biblioteca;
 import com.biblioteca.models.Categoria;
 import com.biblioteca.models.Livro;
+import com.biblioteca.models.SistemaBibliotecas;
 import com.biblioteca.utils.FileManager;
 import com.biblioteca.utils.MenuUtils;
 import java.util.List;
 
 public class CategoriaController {
     private final Biblioteca biblioteca;
+    private final SistemaBibliotecas sistema;
 
     public CategoriaController(Biblioteca biblioteca) {
         this.biblioteca = biblioteca;
+        this.sistema = SistemaBibliotecas.getInstance();
     }
 
     public void menuCategorias() {
@@ -62,7 +65,7 @@ public class CategoriaController {
         try {
             Categoria novaCategoria = new Categoria(nome, codigo);
             biblioteca.adicionarCategorias(novaCategoria);
-            FileManager.salvarDados(biblioteca);
+            FileManager.salvarDados(sistema);
             System.out.println("Categoria adicionada com sucesso!");
         } catch (IllegalArgumentException e) {
             System.out.println("Erro ao adicionar categoria: " + e.getMessage());
@@ -150,7 +153,7 @@ public class CategoriaController {
             biblioteca.editarCategoria(codigo,
                     novoNome.isEmpty() ? categoria.getNome() : novoNome,
                     novoCodigo.isEmpty() ? categoria.getCodigo() : novoCodigo);
-            FileManager.salvarDados(biblioteca);
+            FileManager.salvarDados(sistema);
             System.out.println("Categoria editada com sucesso!");
         } catch (IllegalArgumentException e) {
             System.out.println("Erro ao editar categoria: " + e.getMessage());
@@ -182,7 +185,7 @@ public class CategoriaController {
 
         try {
             if (biblioteca.removerCategoria(codigo)) {
-                FileManager.salvarDados(biblioteca);
+                FileManager.salvarDados(sistema);
                 System.out.println("Categoria removida com sucesso!");
             }
         } catch (Exception e) {

@@ -1,9 +1,6 @@
 package com.biblioteca.controllers;
 
-import com.biblioteca.models.Biblioteca;
-import com.biblioteca.models.Emprestimo;
-import com.biblioteca.models.Leitor;
-import com.biblioteca.models.Livro;
+import com.biblioteca.models.*;
 import com.biblioteca.utils.FileManager;
 import com.biblioteca.utils.MenuUtils;
 import java.util.List;
@@ -14,10 +11,12 @@ import java.util.Calendar;
 
 public class EmprestimoController {
     private final Biblioteca biblioteca;
+    private final SistemaBibliotecas sistema;
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
     public EmprestimoController(Biblioteca biblioteca) {
         this.biblioteca = biblioteca;
+        this.sistema = SistemaBibliotecas.getInstance();
     }
 
     public void menuGerenciarEmprestimos() {
@@ -119,7 +118,7 @@ public class EmprestimoController {
 
         try {
             biblioteca.marcarComoDevolvidoAdmin(isbn, emailLeitor);
-            FileManager.salvarDados(biblioteca);
+            FileManager.salvarDados(sistema);
             System.out.println("Livro marcado como devolvido com sucesso!");
         } catch (IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
@@ -144,7 +143,7 @@ public class EmprestimoController {
             }
 
             biblioteca.alterarDataDevolucaoAdmin(isbn, emailLeitor, novaData);
-            FileManager.salvarDados(biblioteca);
+            FileManager.salvarDados(sistema);
             System.out.println("Data de devolução alterada com sucesso!");
         } catch (ParseException e) {
             System.out.println("Formato de data inválido! Use dd/MM/yyyy");
@@ -269,7 +268,7 @@ public class EmprestimoController {
             Date dataDevolucao = cal.getTime();
 
             biblioteca.realizarEmprestimo(leitor, isbn, dataDevolucao);
-            FileManager.salvarDados(biblioteca);
+            FileManager.salvarDados(sistema);
             System.out.println("Empréstimo realizado com sucesso!");
             System.out.println("Data de devolução prevista: " + sdf.format(dataDevolucao));
         } catch (IllegalArgumentException e) {
@@ -294,7 +293,7 @@ public class EmprestimoController {
 
         try {
             biblioteca.devolverLivro(leitor, isbn);
-            FileManager.salvarDados(biblioteca);
+            FileManager.salvarDados(sistema);
             System.out.println("Livro devolvido com sucesso!");
         } catch (IllegalArgumentException e) {
             System.out.println("Erro ao devolver livro: " + e.getMessage());

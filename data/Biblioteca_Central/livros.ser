@@ -1,0 +1,57 @@
+[
+  {
+    "titulo": "1984",
+    "autor": "George Orwell",
+    "codigoIsbn": "123456",
+    "copiasTotal": 5,
+    "copiasDisponiveis": 5,
+    "categoria": {
+      "nome": "Ficção Científica",
+      "codigo": "FIC"
+    }
+  },
+  {
+    "titulo": "O Senhor dos Anéis",
+    "autor": "J.R.R. Tolkien",
+    "codigoIsbn": "789012",
+    "copiasTotal": 3,
+    "copiasDisponiveis": 3,
+    "categoria": {
+      "nome": "Ficção Científica",
+      "codigo": "FIC"
+    }
+  },
+  {
+    "titulo": "Dom Casmurro",
+    "autor": "Machado de Assis",
+    "codigoIsbn": "345678",
+    "copiasTotal": 4,
+    "copiasDisponiveis": 4,
+    "categoria": {
+      "nome": "Literatura",
+      "codigo": "LIT"
+    }
+  },
+  {
+    "titulo": "Clean Code",
+    "autor": "Robert C. Martin",
+    "codigoIsbn": "901234",
+    "copiasTotal": 2,
+    "copiasDisponiveis": 2,
+    "categoria": {
+      "nome": "Técnico",
+      "codigo": "TEC"
+    }
+  },
+  {
+    "titulo": "Orgulho e Preconceito",
+    "autor": "Jane Austen",
+    "codigoIsbn": "567890",
+    "copiasTotal": 3,
+    "copiasDisponiveis": 3,
+    "categoria": {
+      "nome": "Romance",
+      "codigo": "ROM"
+    }
+  }
+]

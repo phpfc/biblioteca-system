@@ -10,6 +10,7 @@ import com.google.gson.reflect.TypeToken;
 
 public class FileManager {
     private static final String DATA_DIR = "data";
+    private static final String BIBLIOTECAS_FILE = DATA_DIR + "/bibliotecas.ser";
     private static final String LIVROS_FILE = DATA_DIR + "/livros.ser";
     private static final String USUARIOS_FILE = DATA_DIR + "/usuarios.ser";
     private static final String CATEGORIAS_FILE = DATA_DIR + "/categorias.ser";
@@ -19,6 +20,9 @@ public class FileManager {
             .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
             .setPrettyPrinting()
             .create();
+    private static String getBibliotecaDir(String nomeBiblioteca) {
+        return DATA_DIR + "/" + nomeBiblioteca.replaceAll("[^a-zA-Z0-9]", "_");
+    }
 
     public static void verificarDiretorio() {
         File directory = new File(DATA_DIR);
@@ -31,42 +35,80 @@ public class FileManager {
         }
     }
 
-    public static void salvarDados(Biblioteca biblioteca) {
+    public static void salvarDados(SistemaBibliotecas sistema) {
         verificarDiretorio();
-
         try {
-            salvarLivros(biblioteca.getLivros());
+            // Salva a lista de bibliotecas
+            salvarParaArquivo(BIBLIOTECAS_FILE, sistema.getBibliotecas());
+
+            // Salva os dados de cada biblioteca
+            for (Biblioteca biblioteca : sistema.getBibliotecas()) {
+                salvarDadosBiblioteca(biblioteca);
+            }
+
+            // Salva dados globais (usuários)
             salvarUsuarios(Usuario.getUsuarios());
-            salvarCategorias(biblioteca.getCategorias());
-            salvarEmprestimos(biblioteca.getEmprestimos());
-            salvarLeitores(biblioteca.getLeitores());
         } catch (Exception e) {
-            System.out.println("Erro ao salvar dados: " + e.getMessage());
+            System.out.println("Erro ao salvar dados do sistema: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    public static void carregarDados(Biblioteca biblioteca) {
+    private static void salvarDadosBiblioteca(Biblioteca biblioteca) throws IOException {
+        String biblioDir = getBibliotecaDir(biblioteca.getNome());
+        File dir = new File(biblioDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        // Salva os dados específicos da biblioteca
+        salvarParaArquivo(biblioDir + "/livros.ser", biblioteca.getLivros());
+        salvarParaArquivo(biblioDir + "/categorias.ser", biblioteca.getCategorias());
+        salvarParaArquivo(biblioDir + "/emprestimos.ser", biblioteca.getEmprestimos());
+        salvarParaArquivo(biblioDir + "/leitores.ser", biblioteca.getLeitores());
+    }
+
+    public static void carregarDados(SistemaBibliotecas sistema) {
         verificarDiretorio();
-
         try {
-            List<Livro> livros = carregarLivros();
-            List<Usuario> usuarios = carregarUsuarios();
-            List<Categoria> categorias = carregarCategorias();
-            List<Emprestimo> emprestimos = carregarEmprestimos();
-            List<Leitor> leitores = carregarLeitores();
+            // Carrega a lista de bibliotecas
+            List<Biblioteca> bibliotecas = carregarDeArquivo(BIBLIOTECAS_FILE,
+                    new TypeToken<List<Biblioteca>>(){}.getType());
+            if (bibliotecas != null) {
+                for (Biblioteca biblioteca : bibliotecas) {
+                    carregarDadosBiblioteca(biblioteca);
+                    sistema.getBibliotecas().add(biblioteca);
+                }
+            }
 
-            if (livros != null) biblioteca.setLivros(livros);
-            if (usuarios != null) Usuario.setUsuarios(usuarios);
-            if (categorias != null) biblioteca.setCategorias(categorias);
-            if (emprestimos != null) biblioteca.setEmprestimos(emprestimos);
-            if (leitores != null) biblioteca.setLeitores(leitores);
+            // Carrega dados globais (usuários)
+            List<Usuario> usuarios = carregarUsuarios();
+            if (usuarios != null) {
+                Usuario.setUsuarios(usuarios);
+            }
         } catch (Exception e) {
-            System.out.println("Erro ao carregar dados: " + e.getMessage());
+            System.out.println("Erro ao carregar dados do sistema: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
+    private static void carregarDadosBiblioteca(Biblioteca biblioteca) throws IOException {
+        String biblioDir = getBibliotecaDir(biblioteca.getNome());
+
+        List<Livro> livros = carregarDeArquivo(biblioDir + "/livros.ser",
+                new TypeToken<List<Livro>>(){}.getType());
+        List<Categoria> categorias = carregarDeArquivo(biblioDir + "/categorias.ser",
+                new TypeToken<List<Categoria>>(){}.getType());
+        List<Emprestimo> emprestimos = carregarDeArquivo(biblioDir + "/emprestimos.ser",
+                new TypeToken<List<Emprestimo>>(){}.getType());
+        List<Leitor> leitores = carregarDeArquivo(biblioDir + "/leitores.ser",
+                new TypeToken<List<Leitor>>(){}.getType());
+
+        if (livros != null) biblioteca.setLivros(livros);
+        if (categorias != null) biblioteca.setCategorias(categorias);
+        if (emprestimos != null) biblioteca.setEmprestimos(emprestimos);
+        if (leitores != null) biblioteca.setLeitores(leitores);
+    }
     private static void salvarLivros(List<Livro> livros) throws IOException {
         salvarParaArquivo(LIVROS_FILE, livros);
     }

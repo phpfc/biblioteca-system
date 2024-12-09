@@ -1,20 +1,18 @@
 package com.biblioteca.controllers;
 
-import com.biblioteca.models.Biblioteca;
-import com.biblioteca.models.Livro;
-import com.biblioteca.models.Categoria;
+import com.biblioteca.models.*;
 import com.biblioteca.utils.FileManager;
-import com.biblioteca.models.Usuario;
 import com.biblioteca.utils.MenuUtils;
 import java.util.List;
 
 public class LivroController {
     private final Biblioteca biblioteca;
+    private final SistemaBibliotecas sistema;
 
     public LivroController(Biblioteca biblioteca) {
         this.biblioteca = biblioteca;
+        this.sistema = SistemaBibliotecas.getInstance();
     }
-
     public void menuLivros(String usuarioLogado) {
         while (true) {
             String menuOptions = "=== Menu Livros ===\n" +
@@ -127,7 +125,7 @@ public class LivroController {
         try {
             Livro novoLivro = new Livro(titulo, autor, isbn, copias, categoria);
             biblioteca.adicionarLivro(novoLivro);
-            FileManager.salvarDados(biblioteca);
+            FileManager.salvarDados(sistema);  // Atualizado aqui
             System.out.println("Livro adicionado com sucesso!");
         } catch (IllegalArgumentException e) {
             System.out.println("Erro ao adicionar livro: " + e.getMessage());
@@ -192,7 +190,7 @@ public class LivroController {
                     novoAutor.isEmpty() ? livro.getAutor() : novoAutor,
                     novasCopias,
                     novaCategoria);
-            FileManager.salvarDados(biblioteca);
+            FileManager.salvarDados(sistema);  // Atualizado aqui
             System.out.println("Livro editado com sucesso!");
         } catch (IllegalArgumentException e) {
             System.out.println("Erro ao editar livro: " + e.getMessage());
@@ -223,7 +221,7 @@ public class LivroController {
 
         try {
             if (biblioteca.removerLivro(isbn)) {
-                FileManager.salvarDados(biblioteca);
+                FileManager.salvarDados(sistema);
                 System.out.println("Livro removido com sucesso!");
             }
         } catch (Exception e) {

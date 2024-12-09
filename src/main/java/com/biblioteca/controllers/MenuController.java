@@ -1,28 +1,167 @@
 package com.biblioteca.controllers;
 
-import com.biblioteca.models.Biblioteca;
-import com.biblioteca.models.Leitor;
-import com.biblioteca.models.Usuario;
-import com.biblioteca.models.Categoria;
-import com.biblioteca.models.Livro;
+import com.biblioteca.models.*;
 import com.biblioteca.utils.FileManager;
 import com.biblioteca.utils.MenuUtils;
 
+import java.util.List;
+
 public class MenuController {
-    private final Biblioteca biblioteca;
-    private final LivroController livroController;
-    private final CategoriaController categoriaController;
-    private final EmprestimoController emprestimoController;
+    private final SistemaBibliotecas sistema;
+    private Biblioteca bibliotecaAtual;
+    private LivroController livroController;
+    private CategoriaController categoriaController;
+    private EmprestimoController emprestimoController;
     private String usuarioLogado;
     private Leitor leitorLogado;
 
-    public MenuController(Biblioteca biblioteca) {
-        this.biblioteca = biblioteca;
-        this.livroController = new LivroController(biblioteca);
-        this.categoriaController = new CategoriaController(biblioteca);
-        this.emprestimoController = new EmprestimoController(biblioteca);
+    public MenuController(SistemaBibliotecas sistema) {
+        this.sistema = sistema;
+        // Se há apenas uma biblioteca, seleciona ela automaticamente
+        if (!sistema.getBibliotecas().isEmpty()) {
+            this.bibliotecaAtual = sistema.getBibliotecas().get(0);
+            atualizarControllers();
+        }
+
+        this.livroController = new LivroController(bibliotecaAtual);
+        this.categoriaController = new CategoriaController(bibliotecaAtual);
+        this.emprestimoController = new EmprestimoController(bibliotecaAtual);
     }
 
+    private void cadastrarNovaBiblioteca() {
+        String nome = MenuUtils.lerString("Nome da biblioteca: ");
+        if (nome == null) return;
+
+        String endereco = MenuUtils.lerString("Endereço da biblioteca: ");
+        if (endereco == null) return;
+
+        sistema.adicionarBiblioteca(nome, endereco);
+        FileManager.salvarDados(sistema);
+        System.out.println("Biblioteca cadastrada com sucesso!");
+    }
+
+    private void menuGerenciarBibliotecas() {
+        while (true) {
+            int opcao = MenuUtils.lerOpcaoMenu(1, 4,
+                    "=== Gerenciar Bibliotecas ===\n" +
+                            "1. Cadastrar Nova Biblioteca\n" +
+                            "2. Listar Bibliotecas\n" +
+                            "3. Editar Biblioteca\n" +
+                            "4. Remover Biblioteca");
+
+            switch (opcao) {
+                case 1:
+                    cadastrarNovaBiblioteca();
+                    break;
+                case 2:
+                    listarBibliotecas();
+                    break;
+                case 3:
+                    editarBiblioteca();
+                    break;
+                case 4:
+                    removerBiblioteca();
+                    break;
+                case -1:
+                    return;
+            }
+        }
+    }
+
+    private void atualizarControllers() {
+        this.livroController = new LivroController(bibliotecaAtual);
+        this.categoriaController = new CategoriaController(bibliotecaAtual);
+        this.emprestimoController = new EmprestimoController(bibliotecaAtual);
+    }
+
+    private void menuSelecionarBiblioteca() {
+        while (true) {
+            System.out.println("\n=== Bibliotecas Disponíveis ===");
+            List<Biblioteca> bibliotecas = sistema.getBibliotecas();
+
+            if (bibliotecas.isEmpty()) {
+                System.out.println("Nenhuma biblioteca cadastrada.");
+                if (Usuario.isAdmin(usuarioLogado)) {
+                    if (MenuUtils.lerSimNao("Deseja cadastrar uma nova biblioteca?")) {
+                        cadastrarNovaBiblioteca();
+                    }
+                }
+                return;
+            }
+
+            for (int i = 0; i < bibliotecas.size(); i++) {
+                Biblioteca b = bibliotecas.get(i);
+                System.out.println((i + 1) + ". " + b.getNome() + " - " + b.getEndereco());
+            }
+
+            Integer opcao = MenuUtils.lerInteiro("Selecione uma biblioteca (0 para voltar): ");
+            if (opcao == null || opcao == 0) return;
+
+            if (opcao > 0 && opcao <= bibliotecas.size()) {
+                bibliotecaAtual = bibliotecas.get(opcao - 1);
+                atualizarControllers(); // Atualiza os controllers ao trocar de biblioteca
+                break;
+            }
+        }
+    }
+
+    private void listarBibliotecas() {
+        System.out.println("\n=== Bibliotecas Disponíveis ===");
+        List<Biblioteca> bibliotecas = sistema.getBibliotecas();
+
+        if (bibliotecas.isEmpty()) {
+            System.out.println("Nenhuma biblioteca cadastrada.");
+            return;
+        }
+
+        for (Biblioteca b : bibliotecas) {
+            System.out.println("Nome: " + b.getNome());
+            System.out.println("Endereço: " + b.getEndereco());
+            System.out.println("----------------------------------------");
+        }
+    }
+
+    private void editarBiblioteca() {
+        listarBibliotecas();
+
+        String nome = MenuUtils.lerString("\nDigite o nome da biblioteca que deseja editar: ");
+        if (nome == null) return;
+
+        Biblioteca biblioteca = sistema.buscarBiblioteca(nome);
+        if (biblioteca == null) {
+            System.out.println("Biblioteca não encontrada!");
+            return;
+        }
+
+        String novoNome = MenuUtils.lerString("Novo nome (ou vazio para manter): ");
+        if (novoNome == null) return;
+
+        String novoEndereco = MenuUtils.lerString("Novo endereço (ou vazio para manter): ");
+        if (novoEndereco == null) return;
+
+        if (!novoNome.isEmpty()) biblioteca.setNome(novoNome);
+        if (!novoEndereco.isEmpty()) biblioteca.setEndereco(novoEndereco);
+
+        FileManager.salvarDados(sistema);
+        System.out.println("Biblioteca editada com sucesso!");
+    }
+
+    private void removerBiblioteca() {
+        listarBibliotecas();
+
+        String nome = MenuUtils.lerString("\nDigite o nome da biblioteca que deseja remover: ");
+        if (nome == null) return;
+
+        Boolean confirmar = MenuUtils.lerSimNao("Tem certeza que deseja remover esta biblioteca?");
+        if (confirmar == null || !confirmar) {
+            System.out.println("Operação cancelada.");
+            return;
+        }
+
+        sistema.removerBiblioteca(nome);
+        FileManager.salvarDados(sistema);
+        System.out.println("Biblioteca removida com sucesso!");
+    }
     public void menuLogin() {
         while (true) {
             int opcao = MenuUtils.lerOpcaoMenu(1, 3,
@@ -145,7 +284,7 @@ public class MenuController {
             menuLeitor();
         }
 
-        FileManager.salvarDados(biblioteca);
+        FileManager.salvarDados(sistema);
     }
 
     private void menuAdmin() {
@@ -155,11 +294,12 @@ public class MenuController {
                             "1. Gerenciar Categorias\n" +
                             "2. Gerenciar Livros\n" +
                             "3. Gerenciar Empréstimos\n" +
-                            "4. Listar Todos Empréstimos\n" +
+                            "4. Listar TOndeodos Empréstimos\n" +
                             "5. Mostrar Banco de Dados\n" +
                             "6. Carregar Dados Exemplo\n" +
                             "7. Limpar Banco de Dados\n" +
-                            "8. Logout");
+                            "8. Gerenciar Bibliotecas\n" +
+                            "9. Logout");
 
             switch (opcao) {
                 case 1:
@@ -172,7 +312,7 @@ public class MenuController {
                     emprestimoController.menuGerenciarEmprestimos();
                     break;
                 case 4:
-                    biblioteca.listarEmprestimos();
+                    bibliotecaAtual .listarEmprestimos();
                     break;
                 case 5:
                     FileManager.mostrarConteudoBanco();
@@ -183,13 +323,19 @@ public class MenuController {
                 case 7:
                     if (confirmarLimparBanco()) {
                         FileManager.limparBanco();
-                        biblioteca.getLivros().clear();
-                        biblioteca.getCategorias().clear();
-                        biblioteca.getEmprestimos().clear();
-                        biblioteca.getLeitores().clear();
+                        bibliotecaAtual.getLivros().clear();
+                        bibliotecaAtual.getCategorias().clear();
+                        bibliotecaAtual.getEmprestimos().clear();
+                        bibliotecaAtual.getLeitores().clear();
                     }
                     break;
                 case 8:
+                    menuGerenciarBibliotecas();
+                    break;
+                case 9:
+                    menuSelecionarBiblioteca();
+                    break;
+                case 10:
                 case -1:
                     logout();
                     return;
@@ -197,7 +343,18 @@ public class MenuController {
         }
     }
 
+    private void verificarBibliotecaSelecionada() {
+        if (bibliotecaAtual == null) {
+            System.out.println("\nNenhuma biblioteca selecionada!");
+            menuSelecionarBiblioteca();
+            if (bibliotecaAtual == null) { // Se ainda não selecionou
+                throw new RuntimeException("É necessário selecionar uma biblioteca para continuar.");
+            }
+        }
+    }
+
     private void menuLeitor() {
+        verificarBibliotecaSelecionada();
         while (true) {
             int opcao = MenuUtils.lerOpcaoMenu(1, 4,
                     "=== Menu do Leitor ===\n" +
@@ -247,6 +404,7 @@ public class MenuController {
     }
 
     private void carregarDadosExemplo() {
+        verificarBibliotecaSelecionada();
         Boolean confirmar = MenuUtils.lerSimNao(
                 "ATENÇÃO: Isso irá substituir todos os dados existentes! Deseja continuar?");
 
@@ -263,10 +421,10 @@ public class MenuController {
         Categoria romance = new Categoria("Romance", "ROM");
         Categoria tecnico = new Categoria("Técnico", "TEC");
 
-        biblioteca.adicionarCategorias(literatura);
-        biblioteca.adicionarCategorias(ficcaoCientifica);
-        biblioteca.adicionarCategorias(romance);
-        biblioteca.adicionarCategorias(tecnico);
+        bibliotecaAtual.adicionarCategorias(literatura);
+        bibliotecaAtual.adicionarCategorias(ficcaoCientifica);
+        bibliotecaAtual.adicionarCategorias(romance);
+        bibliotecaAtual.adicionarCategorias(tecnico);
 
         // Criar livros exemplo
         Livro livro1 = new Livro("1984", "George Orwell", "123456", 5, ficcaoCientifica);
@@ -275,13 +433,13 @@ public class MenuController {
         Livro livro4 = new Livro("Clean Code", "Robert C. Martin", "901234", 2, tecnico);
         Livro livro5 = new Livro("Orgulho e Preconceito", "Jane Austen", "567890", 3, romance);
 
-        biblioteca.adicionarLivro(livro1);
-        biblioteca.adicionarLivro(livro2);
-        biblioteca.adicionarLivro(livro3);
-        biblioteca.adicionarLivro(livro4);
-        biblioteca.adicionarLivro(livro5);
+        bibliotecaAtual.adicionarLivro(livro1);
+        bibliotecaAtual.adicionarLivro(livro2);
+        bibliotecaAtual.adicionarLivro(livro3);
+        bibliotecaAtual.adicionarLivro(livro4);
+        bibliotecaAtual.adicionarLivro(livro5);
 
-        FileManager.salvarDados(biblioteca);
+        FileManager.salvarDados(sistema);
         System.out.println("Dados exemplo carregados com sucesso!");
     }
 

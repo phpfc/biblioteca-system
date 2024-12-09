@@ -1,0 +1,18 @@
+[
+  {
+    "nome": "Literatura",
+    "codigo": "LIT"
+  },
+  {
+    "nome": "Ficção Científica",
+    "codigo": "FIC"
+  },
+  {
+    "nome": "Romance",
+    "codigo": "ROM"
+  },
+  {
+    "nome": "Técnico",
+    "codigo": "TEC"
+  }
+]
