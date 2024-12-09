@@ -183,7 +183,10 @@ public class MenuController {
                 case 7:
                     if (confirmarLimparBanco()) {
                         FileManager.limparBanco();
-                        biblioteca = new Biblioteca();
+                        biblioteca.getLivros().clear();
+                        biblioteca.getCategorias().clear();
+                        biblioteca.getEmprestimos().clear();
+                        biblioteca.getLeitores().clear();
                     }
                     break;
                 case 8:

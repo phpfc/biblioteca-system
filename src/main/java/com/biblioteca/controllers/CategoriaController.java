@@ -2,6 +2,7 @@ package com.biblioteca.controllers;
 
 import com.biblioteca.models.Biblioteca;
 import com.biblioteca.models.Categoria;
+import com.biblioteca.models.Livro;
 import com.biblioteca.utils.FileManager;
 import com.biblioteca.utils.MenuUtils;
 import java.util.List;

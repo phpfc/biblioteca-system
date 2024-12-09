@@ -205,7 +205,7 @@ public class EmprestimoController {
         exibirResultadosEmprestimos(emprestimos);
     }
 
-    private void realizarEmprestimo(Leitor leitor) {
+    public void realizarEmprestimo(Leitor leitor) {
         // Verificar limite de empréstimos ativos
         List<Emprestimo> emprestimosAtivos = biblioteca.consultarEmprestimosAtivos(leitor);
         if (emprestimosAtivos.size() >= biblioteca.getLimiteEmprestimosPorLeitor()) {
@@ -277,7 +277,7 @@ public class EmprestimoController {
         }
     }
 
-    private void realizarDevolucao(Leitor leitor) {
+    public void realizarDevolucao(Leitor leitor) {
         List<Emprestimo> emprestimosAtivos = biblioteca.consultarEmprestimosAtivos(leitor);
         if (emprestimosAtivos.isEmpty()) {
             System.out.println("Você não possui empréstimos ativos para devolver.");
