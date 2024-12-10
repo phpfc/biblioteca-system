@@ -17,11 +17,8 @@ public class Emprestimo {
 	}
 
 	public Leitor getLeitor() { return leitor; }
-	public void setLeitor(Leitor leitor) { this.leitor = leitor; }
 	public Livro getLivro() { return livro; }
-	public void setLivro(Livro livro) { this.livro = livro; }
 	public Date getDataEmprestimo() { return dataEmprestimo; }
-	public void setDataEmprestimo(Date dataEmprestimo) { this.dataEmprestimo = dataEmprestimo; }
 	public Date getDataPrevistaDevolucao() { return dataPrevistaDevolucao; }
 	public void setDataPrevistaDevolucao(Date dataPrevistaDevolucao) { this.dataPrevistaDevolucao = dataPrevistaDevolucao; }
 	public Date getDataDevolucao() { return dataDevolucao; }

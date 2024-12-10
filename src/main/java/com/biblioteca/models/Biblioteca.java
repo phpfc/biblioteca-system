@@ -1,5 +1,7 @@
 package com.biblioteca.models;
 
+import com.biblioteca.utils.ValidationUtils;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -21,10 +23,6 @@ public class Biblioteca {
         this.leitores = new ArrayList<>();
     }
 
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-    public String getEndereco() { return endereco; }
-    public void setEndereco(String endereco) { this.endereco = endereco; }
     public List<Livro> getLivros() { return livros; }
     public void setLivros(List<Livro> livros) { this.livros = livros; }
     public List<Categoria> getCategorias() { return categorias; }
@@ -34,19 +32,6 @@ public class Biblioteca {
     public List<Leitor> getLeitores() { return leitores; }
     public void setLeitores(List<Leitor> leitores) { this.leitores = leitores; }
     public int getLimiteEmprestimosPorLeitor() { return LIMITE_EMPRESTIMOS; }
-
-    public List<Livro> buscarLivros(String termo) {
-        List<Livro> resultados = new ArrayList<>();
-        termo = termo.toLowerCase();
-        for (Livro livro : livros) {
-            if (livro.getTitulo().toLowerCase().contains(termo) ||
-                    livro.getAutor().toLowerCase().contains(termo) ||
-                    livro.getCodigoIsbn().equals(termo)) {
-                resultados.add(livro);
-            }
-        }
-        return resultados;
-    }
 
     public Livro buscarPorIsbn(String isbn) {
         return livros.stream()
@@ -195,7 +180,6 @@ public class Biblioteca {
         adicionarCategoria(categoria);
     }
 
-
     public boolean removerCategoria(String codigo) {
         Categoria categoria = buscarPorCodigo(codigo);
         if (categoria == null) {
@@ -209,13 +193,6 @@ public class Biblioteca {
         }
 
         return categorias.remove(categoria);
-    }
-
-    public Categoria buscarCategoriaPorNome(String nome) {
-        return categorias.stream()
-                .filter(c -> c.getNome().toLowerCase().contains(nome.toLowerCase()))
-                .findFirst()
-                .orElse(null);
     }
 
     public void adicionarLivro(Livro livro) {
@@ -274,26 +251,24 @@ public class Biblioteca {
     }
 
     public void realizarEmprestimo(Leitor leitor, String isbn, Date dataPrevistaDevolucao) {
+        if (!ValidationUtils.isDataFutura(dataPrevistaDevolucao)) {
+            throw new IllegalArgumentException("Data de devolução deve ser futura");
+        }
+
         Livro livro = buscarPorIsbn(isbn);
         if (livro == null) {
             throw new IllegalArgumentException("Livro não encontrado");
         }
 
-        if (!livro.temCopiaDisponivel()) {
-            throw new IllegalStateException("Não há cópias disponíveis deste livro");
+        Emprestimo novoEmprestimo = new Emprestimo(leitor, livro, new Date(), dataPrevistaDevolucao);
+        String validationError = ValidationUtils.validarEmprestimo(novoEmprestimo, this);
+
+        if (validationError != null) {
+            throw new IllegalArgumentException(validationError);
         }
 
-        long emprestimosAtivos = emprestimos.stream()
-                .filter(e -> e.getLeitor().equals(leitor) && e.getDataDevolucao() == null)
-                .count();
-
-        if (emprestimosAtivos >= LIMITE_EMPRESTIMOS) {
-            throw new IllegalStateException("Leitor atingiu o limite de empréstimos");
-        }
-
-        Emprestimo emprestimo = new Emprestimo(leitor, livro, new Date(), dataPrevistaDevolucao);
         livro.setCopiasDisponiveis(livro.getCopiasDisponiveis() - 1);
-        emprestimos.add(emprestimo);
+        emprestimos.add(novoEmprestimo);
     }
 
     public void devolverLivro(Leitor leitor, String isbn) {
@@ -327,6 +302,12 @@ public class Biblioteca {
                 .filter(e -> e.getLeitor().equals(leitor) &&
                         e.getDataEmprestimo().after(inicio) &&
                         e.getDataEmprestimo().before(fim))
+                .collect(Collectors.toList());
+    }
+
+    public List<Emprestimo> consultarEmprestimosPorLeitor(String emailLeitor) {
+        return emprestimos.stream()
+                .filter(e -> e.getLeitor().getEmail().equals(emailLeitor))
                 .collect(Collectors.toList());
     }
 

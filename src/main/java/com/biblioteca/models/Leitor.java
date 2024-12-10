@@ -16,11 +16,8 @@ public class Leitor {
 		return String.format("L%04d", autoincremento++);
 	}
 
-	public String getCodigo() { return codigo; }
 	public String getNome() { return nome; }
-	public void setNome(String nome) { this.nome = nome; }
 	public String getEmail() { return email; }
-	public void setEmail(String email) { this.email = email; }
 
 	@Override
 	public String toString() {

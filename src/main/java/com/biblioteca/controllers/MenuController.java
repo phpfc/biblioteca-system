@@ -7,6 +7,7 @@ import com.biblioteca.models.Categoria;
 import com.biblioteca.models.Livro;
 import com.biblioteca.utils.FileManager;
 import com.biblioteca.utils.MenuUtils;
+import com.biblioteca.utils.ValidationUtils;
 
 public class MenuController {
     private final Biblioteca biblioteca;
@@ -88,15 +89,14 @@ public class MenuController {
         String login = MenuUtils.lerString("Digite seu login: ");
         if (login == null) return;
 
-        for (Usuario u : Usuario.getUsuarios()) {
-            if (u.getLogin().equals(login)) {
-                System.out.println("Este login já está em uso!");
-                return;
-            }
-        }
-
         String senha = MenuUtils.lerString("Digite sua senha: ");
         if (senha == null) return;
+
+        // Validate credentials using ValidationUtils
+        if (!ValidationUtils.isValidCredentials(login, senha)) {
+            System.out.println("Credenciais inválidas! A senha deve ter pelo menos 6 caracteres.");
+            return;
+        }
 
         Boolean isAdmin = MenuUtils.lerSimNao("Você é um administrador?");
         if (isAdmin == null) return;
@@ -120,19 +120,14 @@ public class MenuController {
             String email = MenuUtils.lerString("E-mail: ");
             if (email == null) return;
 
-            if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-                System.out.println("E-mail inválido!");
+            Leitor novoLeitor = new Leitor(nome, email);
+            String validationError = ValidationUtils.validarLeitor(novoLeitor, biblioteca.getLeitores());
+
+            if (validationError != null) {
+                System.out.println("Erro de validação: " + validationError);
                 return;
             }
 
-            for (Usuario u : Usuario.getUsuarios()) {
-                if (u.getLeitor() != null && u.getLeitor().getEmail().equals(email)) {
-                    System.out.println("Este e-mail já está cadastrado!");
-                    return;
-                }
-            }
-
-            Leitor novoLeitor = new Leitor(nome, email);
             Usuario novoUsuario = new Usuario(login, senha, false, novoLeitor);
             Usuario.getUsuarios().add(novoUsuario);
             System.out.println("Leitor cadastrado com sucesso!");
@@ -143,7 +138,7 @@ public class MenuController {
 
         FileManager.salvarDados(biblioteca);
     }
-
+    
     private void menuAdmin() {
         while (true) {
             int opcao = MenuUtils.lerOpcaoMenu(1, 8,

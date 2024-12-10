@@ -6,6 +6,8 @@ import com.biblioteca.models.Categoria;
 import com.biblioteca.utils.FileManager;
 import com.biblioteca.models.Usuario;
 import com.biblioteca.utils.MenuUtils;
+import com.biblioteca.utils.ValidationUtils;
+
 import java.util.List;
 
 public class LivroController {
@@ -96,11 +98,6 @@ public class LivroController {
         String isbn = MenuUtils.lerString("ISBN do livro: ");
         if (isbn == null) return;
 
-        if (biblioteca.buscarPorIsbn(isbn) != null) {
-            System.out.println("Já existe um livro cadastrado com este ISBN!");
-            return;
-        }
-
         Integer copias = MenuUtils.lerInteiro("Número de cópias: ");
         if (copias == null || copias < 1) {
             System.out.println("O número de cópias deve ser maior que zero!");
@@ -121,8 +118,15 @@ public class LivroController {
             return;
         }
 
+        Livro novoLivro = new Livro(titulo, autor, isbn, copias, categoria);
+        String validationError = ValidationUtils.validarLivro(novoLivro, biblioteca.getLivros());
+
+        if (validationError != null) {
+            System.out.println("Erro de validação: " + validationError);
+            return;
+        }
+
         try {
-            Livro novoLivro = new Livro(titulo, autor, isbn, copias, categoria);
             biblioteca.adicionarLivro(novoLivro);
             FileManager.salvarDados(biblioteca);
             System.out.println("Livro adicionado com sucesso!");

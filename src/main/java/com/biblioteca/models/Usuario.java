@@ -22,10 +22,8 @@ public class Usuario {
     }
 
     public String getLogin() { return login; }
-    public void setLogin(String login) { this.login = login; }
     public boolean isAdmin() { return isAdmin; }
     public Leitor getLeitor() { return leitor; }
-    public void setLeitor(Leitor leitor) { this.leitor = leitor; }
     public static List<Usuario> getUsuarios() { return usuarios; }
     public static void setUsuarios(List<Usuario> usuarios) { Usuario.usuarios = usuarios; }
 

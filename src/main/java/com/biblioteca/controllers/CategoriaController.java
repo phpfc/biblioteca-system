@@ -5,6 +5,8 @@ import com.biblioteca.models.Categoria;
 import com.biblioteca.models.Livro;
 import com.biblioteca.utils.FileManager;
 import com.biblioteca.utils.MenuUtils;
+import com.biblioteca.utils.ValidationUtils;
+
 import java.util.List;
 
 public class CategoriaController {
@@ -53,13 +55,15 @@ public class CategoriaController {
         String codigo = MenuUtils.lerString("Código da categoria: ");
         if (codigo == null) return;
 
-        if (biblioteca.buscarPorCodigo(codigo) != null) {
-            System.out.println("Já existe uma categoria com este código!");
+        Categoria novaCategoria = new Categoria(nome, codigo);
+        String validationError = ValidationUtils.validarCategoria(novaCategoria, biblioteca.getCategorias());
+
+        if (validationError != null) {
+            System.out.println("Erro de validação: " + validationError);
             return;
         }
 
         try {
-            Categoria novaCategoria = new Categoria(nome, codigo);
             biblioteca.adicionarCategorias(novaCategoria);
             FileManager.salvarDados(biblioteca);
             System.out.println("Categoria adicionada com sucesso!");
