@@ -16,7 +16,6 @@ public class Emprestimo {
 		this.dataPrevistaDevolucao = dataPrevistaDevolucao;
 	}
 
-	// Getters e Setters
 	public Leitor getLeitor() { return leitor; }
 	public void setLeitor(Leitor leitor) { this.leitor = leitor; }
 	public Livro getLivro() { return livro; }

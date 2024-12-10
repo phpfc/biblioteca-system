@@ -17,7 +17,6 @@ public class Livro {
         this.categoria = categoria;
     }
 
-    // Getters e Setters
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
     public String getAutor() { return autor; }

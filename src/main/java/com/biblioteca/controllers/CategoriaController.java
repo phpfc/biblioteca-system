@@ -53,7 +53,6 @@ public class CategoriaController {
         String codigo = MenuUtils.lerString("Código da categoria: ");
         if (codigo == null) return;
 
-        // Validar se já existe categoria com este código
         if (biblioteca.buscarPorCodigo(codigo) != null) {
             System.out.println("Já existe uma categoria com este código!");
             return;
@@ -111,7 +110,6 @@ public class CategoriaController {
             System.out.println("Nome: " + categoria.getNome());
             System.out.println("Código: " + categoria.getCodigo());
 
-            // Listar livros desta categoria
             System.out.println("\nLivros desta categoria:");
             List<Livro> livrosDaCategoria = biblioteca.getLivrosPorCategoria(categoria);
             if (livrosDaCategoria.isEmpty()) {
@@ -167,7 +165,6 @@ public class CategoriaController {
             return;
         }
 
-        // Verificar se existem livros nesta categoria
         List<Livro> livrosDaCategoria = biblioteca.getLivrosPorCategoria(categoria);
         if (!livrosDaCategoria.isEmpty()) {
             System.out.println("\nAtenção: Esta categoria possui livros cadastrados!");

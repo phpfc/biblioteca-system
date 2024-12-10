@@ -21,7 +21,6 @@ public class Biblioteca {
         this.leitores = new ArrayList<>();
     }
 
-    // Getters e Setters básicos
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
     public String getEndereco() { return endereco; }
@@ -36,7 +35,6 @@ public class Biblioteca {
     public void setLeitores(List<Leitor> leitores) { this.leitores = leitores; }
     public int getLimiteEmprestimosPorLeitor() { return LIMITE_EMPRESTIMOS; }
 
-    // Métodos de negócio
     public List<Livro> buscarLivros(String termo) {
         List<Livro> resultados = new ArrayList<>();
         termo = termo.toLowerCase();
@@ -75,7 +73,6 @@ public class Biblioteca {
                 System.out.println("\nCódigo: " + categoria.getCodigo());
                 System.out.println("Nome: " + categoria.getNome());
 
-                // Mostrar quantidade de livros na categoria
                 long qtdLivros = livros.stream()
                         .filter(l -> l.getCategoria() != null &&
                                 l.getCategoria().equals(categoria))
@@ -111,7 +108,6 @@ public class Biblioteca {
             throw new IllegalArgumentException("Categoria não encontrada");
         }
 
-        // Se o novo código é diferente do atual, verificar se já existe
         if (!novoCodigo.equals(codigoAtual) && buscarPorCodigo(novoCodigo) != null) {
             throw new IllegalArgumentException("Já existe uma categoria com este código");
         }
@@ -135,7 +131,6 @@ public class Biblioteca {
                 .collect(Collectors.toList());
     }
 
-    // Métodos administrativos de empréstimos
     public void marcarComoDevolvidoAdmin(String isbn, String emailLeitor) {
         Emprestimo emprestimo = emprestimos.stream()
                 .filter(e -> e.getLivro().getCodigoIsbn().equals(isbn) &&
@@ -167,7 +162,6 @@ public class Biblioteca {
         emprestimo.setDataPrevistaDevolucao(novaData);
     }
 
-    // Métodos de pesquisa e exibição de resultados
     public List<Livro> pesquisarLivros(String termo) {
         return livros.stream()
                 .filter(l -> l.getTitulo().toLowerCase().contains(termo.toLowerCase()) ||
@@ -197,9 +191,8 @@ public class Biblioteca {
         }
     }
 
-    // Method to replace adicionarCategorias (plural) with singular version
     public void adicionarCategorias(Categoria categoria) {
-        adicionarCategoria(categoria); // Call the singular version
+        adicionarCategoria(categoria);
     }
 
 
@@ -209,7 +202,6 @@ public class Biblioteca {
             return false;
         }
 
-        // Remover categoria dos livros associados
         for (Livro livro : livros) {
             if (livro.getCategoria() != null && livro.getCategoria().equals(categoria)) {
                 livro.setCategoria(null);
@@ -226,7 +218,6 @@ public class Biblioteca {
                 .orElse(null);
     }
 
-    // Métodos de gerenciamento de Livros
     public void adicionarLivro(Livro livro) {
         if (buscarPorIsbn(livro.getCodigoIsbn()) != null) {
             throw new IllegalArgumentException("Livro com este ISBN já existe");
@@ -240,7 +231,6 @@ public class Biblioteca {
             throw new IllegalArgumentException("Livro não encontrado");
         }
 
-        // Validar título e autor
         if (novoTitulo != null && !novoTitulo.trim().isEmpty()) {
             livro.setTitulo(novoTitulo);
         }
@@ -249,7 +239,6 @@ public class Biblioteca {
             livro.setAutor(novoAutor);
         }
 
-        // Atualizar cópias se fornecido
         if (novasCopias != null) {
             int copiasEmprestadas = livro.getCopiasTotal() - livro.getCopiasDisponiveis();
             if (novasCopias < copiasEmprestadas) {
@@ -258,13 +247,11 @@ public class Biblioteca {
                 );
             }
 
-            // Ajustar cópias disponíveis mantendo a proporção de emprestados
             int novasCopiasDisponiveis = novasCopias - copiasEmprestadas;
             livro.setCopiasTotal(novasCopias);
             livro.setCopiasDisponiveis(novasCopiasDisponiveis);
         }
 
-        // Atualizar categoria se fornecida
         if (novaCategoria != null) {
             livro.setCategoria(novaCategoria);
         }
@@ -276,7 +263,6 @@ public class Biblioteca {
             return false;
         }
 
-        // Verificar empréstimos ativos
         boolean temEmprestimosAtivos = emprestimos.stream()
                 .anyMatch(e -> e.getLivro().equals(livro) && e.getDataDevolucao() == null);
 
@@ -287,7 +273,6 @@ public class Biblioteca {
         return livros.remove(livro);
     }
 
-    // Métodos de gerenciamento de Empréstimos
     public void realizarEmprestimo(Leitor leitor, String isbn, Date dataPrevistaDevolucao) {
         Livro livro = buscarPorIsbn(isbn);
         if (livro == null) {
@@ -298,7 +283,6 @@ public class Biblioteca {
             throw new IllegalStateException("Não há cópias disponíveis deste livro");
         }
 
-        // Verificar limite de empréstimos do leitor
         long emprestimosAtivos = emprestimos.stream()
                 .filter(e -> e.getLeitor().equals(leitor) && e.getDataDevolucao() == null)
                 .count();
@@ -346,7 +330,6 @@ public class Biblioteca {
                 .collect(Collectors.toList());
     }
 
-    // Métodos de listagem e relatórios
     public void listarLivros() {
         System.out.println("\n=== Lista de Livros ===");
         if (livros.isEmpty()) {

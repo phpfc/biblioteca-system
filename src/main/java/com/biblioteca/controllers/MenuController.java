@@ -88,7 +88,6 @@ public class MenuController {
         String login = MenuUtils.lerString("Digite seu login: ");
         if (login == null) return;
 
-        // Verificar se login já existe
         for (Usuario u : Usuario.getUsuarios()) {
             if (u.getLogin().equals(login)) {
                 System.out.println("Este login já está em uso!");
@@ -103,7 +102,6 @@ public class MenuController {
         if (isAdmin == null) return;
 
         if (isAdmin) {
-            // Verificar se já existe outro admin
             if (!Usuario.getUsuarios().isEmpty() && !Usuario.isAdmin(usuarioLogado)) {
                 System.out.println("Apenas administradores podem criar novos administradores!");
                 return;
@@ -122,13 +120,11 @@ public class MenuController {
             String email = MenuUtils.lerString("E-mail: ");
             if (email == null) return;
 
-            // Validar email
             if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
                 System.out.println("E-mail inválido!");
                 return;
             }
 
-            // Verificar se email já está cadastrado
             for (Usuario u : Usuario.getUsuarios()) {
                 if (u.getLeitor() != null && u.getLeitor().getEmail().equals(email)) {
                     System.out.println("Este e-mail já está cadastrado!");
@@ -257,7 +253,6 @@ public class MenuController {
 
         System.out.println("\n=== Carregando Dados Exemplo ===");
 
-        // Criar categorias exemplo
         Categoria literatura = new Categoria("Literatura", "LIT");
         Categoria ficcaoCientifica = new Categoria("Ficção Científica", "FIC");
         Categoria romance = new Categoria("Romance", "ROM");
@@ -268,7 +263,6 @@ public class MenuController {
         biblioteca.adicionarCategorias(romance);
         biblioteca.adicionarCategorias(tecnico);
 
-        // Criar livros exemplo
         Livro livro1 = new Livro("1984", "George Orwell", "123456", 5, ficcaoCientifica);
         Livro livro2 = new Livro("O Senhor dos Anéis", "J.R.R. Tolkien", "789012", 3, ficcaoCientifica);
         Livro livro3 = new Livro("Dom Casmurro", "Machado de Assis", "345678", 4, literatura);

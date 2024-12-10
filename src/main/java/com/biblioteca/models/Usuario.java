@@ -21,7 +21,6 @@ public class Usuario {
         this.leitor = leitor;
     }
 
-    // Getters e Setters
     public String getLogin() { return login; }
     public void setLogin(String login) { this.login = login; }
     public boolean isAdmin() { return isAdmin; }
@@ -30,7 +29,6 @@ public class Usuario {
     public static List<Usuario> getUsuarios() { return usuarios; }
     public static void setUsuarios(List<Usuario> usuarios) { Usuario.usuarios = usuarios; }
 
-    // Métodos estáticos
     public static boolean autenticar(String login, String senha) {
         return usuarios.stream()
                 .anyMatch(u -> u.login.equals(login) && u.senha.equals(senha));

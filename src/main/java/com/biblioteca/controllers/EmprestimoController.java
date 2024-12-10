@@ -206,7 +206,6 @@ public class EmprestimoController {
     }
 
     public void realizarEmprestimo(Leitor leitor) {
-        // Verificar limite de empréstimos ativos
         List<Emprestimo> emprestimosAtivos = biblioteca.consultarEmprestimosAtivos(leitor);
         if (emprestimosAtivos.size() >= biblioteca.getLimiteEmprestimosPorLeitor()) {
             System.out.println("Você atingiu o limite de empréstimos simultâneos!");
@@ -263,7 +262,6 @@ public class EmprestimoController {
 
     private void realizarEmprestimoLivro(Leitor leitor, String isbn) {
         try {
-            // Calcular data de devolução (7 dias a partir de hoje)
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DAY_OF_MONTH, 7);
             Date dataDevolucao = cal.getTime();

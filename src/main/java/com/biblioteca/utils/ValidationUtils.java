@@ -93,14 +93,13 @@ public class ValidationUtils {
             return "Categoria é obrigatória";
         }
 
-        // Verificar ISBN duplicado
         for (Livro livroExistente : livrosExistentes) {
             if (livroExistente.getCodigoIsbn().equals(livro.getCodigoIsbn())) {
                 return "ISBN já cadastrado";
             }
         }
 
-        return null; // null significa que não há erros
+        return null;
     }
 
     /**
@@ -114,14 +113,13 @@ public class ValidationUtils {
             return "Código inválido";
         }
 
-        // Verificar código duplicado
         for (Categoria categoriaExistente : categoriasExistentes) {
             if (categoriaExistente.getCodigo().equals(categoria.getCodigo())) {
                 return "Código já cadastrado";
             }
         }
 
-        return null; // null significa que não há erros
+        return null;
     }
 
     /**
@@ -135,14 +133,13 @@ public class ValidationUtils {
             return "Email inválido";
         }
 
-        // Verificar email duplicado
         for (Leitor leitorExistente : leitoresExistentes) {
             if (leitorExistente.getEmail().equals(leitor.getEmail())) {
                 return "Email já cadastrado";
             }
         }
 
-        return null; // null significa que não há erros
+        return null;
     }
 
     /**
@@ -162,7 +159,6 @@ public class ValidationUtils {
             return "Livro não possui cópias disponíveis";
         }
 
-        // Verificar limite de empréstimos do leitor
         int emprestimosAtivos = 0;
         for (Emprestimo emp : biblioteca.getEmprestimos()) {
             if (emp.getLeitor().equals(emprestimo.getLeitor()) && emp.getDataDevolucao() == null) {
@@ -173,7 +169,7 @@ public class ValidationUtils {
             return "Leitor atingiu o limite de empréstimos";
         }
 
-        return null; // null significa que não há erros
+        return null;
     }
 
     /**
@@ -186,7 +182,7 @@ public class ValidationUtils {
         if (emprestimo.getDataDevolucao() != null) {
             return "Livro já foi devolvido";
         }
-        return null; // null significa que não há erros
+        return null;
     }
 
     /**
@@ -202,6 +198,6 @@ public class ValidationUtils {
         if (emprestimo.getDataDevolucao() != null) {
             return "Livro já foi devolvido";
         }
-        return null; // null significa que não há erros
+        return null;
     }
 }

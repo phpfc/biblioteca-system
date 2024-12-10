@@ -81,7 +81,6 @@ public class LivroController {
     }
 
     private void adicionarLivro() {
-        // Verificar se existem categorias cadastradas
         List<Categoria> categorias = biblioteca.getCategorias();
         if (categorias.isEmpty()) {
             System.out.println("Não há categorias cadastradas. Por favor, cadastre uma categoria primeiro.");
@@ -97,7 +96,6 @@ public class LivroController {
         String isbn = MenuUtils.lerString("ISBN do livro: ");
         if (isbn == null) return;
 
-        // Verificar se já existe livro com este ISBN
         if (biblioteca.buscarPorIsbn(isbn) != null) {
             System.out.println("Já existe um livro cadastrado com este ISBN!");
             return;
@@ -109,7 +107,6 @@ public class LivroController {
             return;
         }
 
-        // Mostrar categorias disponíveis
         System.out.println("\nCategorias disponíveis:");
         for (Categoria cat : categorias) {
             System.out.println("Código: " + cat.getCodigo() + " - Nome: " + cat.getNome());
@@ -170,7 +167,6 @@ public class LivroController {
             }
         }
 
-        // Mostrar categorias disponíveis
         System.out.println("\nCategorias disponíveis:");
         for (Categoria cat : biblioteca.getCategorias()) {
             System.out.println("Código: " + cat.getCodigo() + " - Nome: " + cat.getNome());
@@ -209,7 +205,6 @@ public class LivroController {
             return;
         }
 
-        // Verificar se há empréstimos ativos
         if (livro.getCopiasTotal() > livro.getCopiasDisponiveis()) {
             System.out.println("\nAtenção: Este livro possui cópias emprestadas!");
             System.out.println("Cópias emprestadas: " + (livro.getCopiasTotal() - livro.getCopiasDisponiveis()));
