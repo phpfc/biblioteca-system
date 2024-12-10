@@ -92,7 +92,6 @@ public class MenuController {
         String senha = MenuUtils.lerString("Digite sua senha: ");
         if (senha == null) return;
 
-        // Validate credentials using ValidationUtils
         if (!ValidationUtils.isValidCredentials(login, senha)) {
             System.out.println("Credenciais inválidas! A senha deve ter pelo menos 6 caracteres.");
             return;
@@ -138,7 +137,7 @@ public class MenuController {
 
         FileManager.salvarDados(biblioteca);
     }
-    
+
     private void menuAdmin() {
         while (true) {
             int opcao = MenuUtils.lerOpcaoMenu(1, 8,

@@ -27,7 +27,7 @@ public class EmprestimoController {
             int opcao = MenuUtils.lerOpcaoMenu(1, 5,
                     "=== Gerenciar Empréstimos ===\n" +
                             "1. Consultar Empréstimos por Livro\n" +
-                            "2. Consultar Empréstimos por Leitor\n" +  // New option
+                            "2. Consultar Empréstimos por Leitor\n" +
                             "3. Marcar Livro como Devolvido\n" +
                             "4. Alterar Data de Devolução\n" +
                             "5. Voltar");
@@ -37,7 +37,7 @@ public class EmprestimoController {
                     consultarEmprestimosPorLivro();
                     break;
                 case 2:
-                    consultarEmprestimosPorLeitor();  // New method
+                    consultarEmprestimosPorLeitor();
                     break;
                 case 3:
                     marcarLivroDevolvido();
@@ -171,7 +171,6 @@ public class EmprestimoController {
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             Date novaData = sdf.parse(dataStr);
 
-            // Find the active loan
             Emprestimo emprestimo = biblioteca.getEmprestimos().stream()
                     .filter(e -> e.getLivro().getCodigoIsbn().equals(isbn) &&
                             e.getLeitor().getEmail().equals(emailLeitor) &&
@@ -179,7 +178,6 @@ public class EmprestimoController {
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Empréstimo não encontrado"));
 
-            // Validate the date change
             String validationError = ValidationUtils.validarAlteracaoDataDevolucao(novaData, emprestimo);
             if (validationError != null) {
                 System.out.println("Erro: " + validationError);
@@ -309,7 +307,7 @@ public class EmprestimoController {
         Date dataDevolucao = cal.getTime();
 
         try {
-            biblioteca.realizarEmprestimo(leitor, isbn, dataDevolucao); // Add this call
+            biblioteca.realizarEmprestimo(leitor, isbn, dataDevolucao);
             FileManager.salvarDados(biblioteca);
             System.out.println("Empréstimo realizado com sucesso!");
             System.out.println("Data de devolução prevista: " + sdf.format(dataDevolucao));
@@ -334,13 +332,11 @@ public class EmprestimoController {
         if (isbn == null) return;
 
         try {
-            // Find the active loan
             Emprestimo emprestimo = emprestimosAtivos.stream()
                     .filter(e -> e.getLivro().getCodigoIsbn().equals(isbn))
                     .findFirst()
                     .orElse(null);
 
-            // Validate the return
             String validationError = ValidationUtils.validarDevolucao(emprestimo);
             if (validationError != null) {
                 System.out.println("Erro: " + validationError);
